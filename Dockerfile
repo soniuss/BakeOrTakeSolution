@@ -6,7 +6,7 @@ RUN dotnet restore BakeOrTakeSolution.sln
 RUN dotnet publish Persistence.ApiRest/Persistence.ApiRest.csproj -c Release -o /app/publish
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
-RUN dotnet ef database update --project Persistence.ApiRest/Persistence.ApiRest.csproj --startup-project Persistence.ApiRest/Persistence.ApiRest.csproj -c Release --solution BakeOrTakeSolution.sln --no-build --no-restore --output /app/publish
+RUN dotnet ef database update --project Persistence.ApiRest/Persistence.ApiRest.csproj --startup-project Persistence.ApiRest/Persistence.ApiRest.csproj --configuration Release
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
