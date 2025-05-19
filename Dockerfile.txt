@@ -1,28 +1,24 @@
-# Usa la imagen oficial de .NET 8 para build
+# Etapa de build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
 
+# Copiamos y restauramos dependencias solo de la API
+COPY Persistence.ApiRest/Persistence.ApiRest.csproj Persistence.ApiRest/
+COPY Domain.Model/Domain.Model.csproj Domain.Model/
+RUN dotnet restore Persistence.ApiRest/Persistence.ApiRest.csproj
+
+# Copiamos el resto
+COPY . .
+
+RUN dotnet publish Persistence.ApiRest/Persistence.ApiRest.csproj -c Release -o /app/publish
+
+# Etapa de runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-
-# Copia todo el contenido del repositorio al contenedor
-COPY . ./
-
-# Restaura dependencias
-RUN dotnet restore "Persistence.ApiRest/Persistence.ApiRest.csproj"
-
-# Publica la app en modo release
-RUN dotnet publish "Persistence.ApiRest/Persistence.ApiRest.csproj" -c Release -o /app/publish
-
-# Imagen final con runtime más liviano
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-
-WORKDIR /app
-
 COPY --from=build /app/publish .
 
-# Usa el puerto que Railway asigna
-ENV ASPNETCORE_URLS=http://+:${PORT}
-
-# Expón el puerto para Railway (aunque es simbólico, lo ayuda a detectar que se trata de una web app)
+# Puerto que Railway inyecta por variable de entorno
+ENV ASPNETCORE_URLS=http://+:$PORT
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "Persistence.ApiRest.dll"]
