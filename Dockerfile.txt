@@ -1,0 +1,29 @@
+# Imagen base oficial del SDK de .NET 8
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# Establecer el directorio de trabajo dentro del contenedor
+WORKDIR /src
+
+# Copiar la solución y los proyectos
+COPY ./BakeOrTakeSolution.sln ./
+COPY ./Domain.Model/ ./Domain.Model/
+COPY ./Persistence.ApiRest/ ./Persistence.ApiRest/
+COPY ./proyectoFin/ ./proyectoFin/
+
+# Restaurar las dependencias
+RUN dotnet restore ./Persistence.ApiRest/Persistence.ApiRest.csproj
+
+# Construir el proyecto en modo Release
+RUN dotnet publish ./Persistence.ApiRest/Persistence.ApiRest.csproj -c Release -o /app/publish
+
+# Imagen base para ejecutar la app
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+WORKDIR /app
+COPY --from=build /app/publish .
+
+# Exponer el puerto (ajústalo si usas otro)
+EXPOSE 8080
+
+# Comando para ejecutar la API
+ENTRYPOINT ["dotnet", "Persistence.ApiRest.dll"]
