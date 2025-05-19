@@ -1,0 +1,6 @@
+@Persistence.ApiRest_HostAddress = http://localhost:5152
+
+GET {{Persistence.ApiRest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
