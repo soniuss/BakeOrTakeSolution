@@ -39,7 +39,7 @@ COPY --from=build /app/publish .
 # La aplicacion .NET por defecto escucha en el puerto 80 (o 443 para https)
 # Mapeamos el puerto 8080 del contenedor al puerto $PORT del host (Railway lo hace)
 ENV ASPNETCORE_URLS=http://+:$PORT
-EXPOSE 8080 # ¡Comentario ELIMINADO de esta linea!
+EXPOSE 8080 # 
 
 # Definimos el punto de entrada de la aplicacion
 ENTRYPOINT ["dotnet", "Persistence.ApiRest.dll"]
