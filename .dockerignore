@@ -1,0 +1,27 @@
+# Ignorar carpetas de build y publish
+bin/
+obj/
+publish/
+
+# Ignorar la carpeta de git
+.git/
+
+# Ignorar la carpeta de configuracion de Visual Studio
+.vs/
+
+# Ignorar archivos de usuario de Visual Studio
+*.user
+*.suo
+*.log
+
+# Ignorar paquetes de NuGet
+packages/
+
+# Ignorar archivos de pruebas de cobertura
+coverage/
+
+# Ignorar archivos de configuracion de Railway (si los tienes)
+.railway/
+
+# Ignorar el propio archivo dockerignore
+.dockerignore
