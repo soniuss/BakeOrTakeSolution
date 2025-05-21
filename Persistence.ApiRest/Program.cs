@@ -5,14 +5,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configurar la cadena de conexión
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                      ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+                             ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Si DATABASE_URL viene en formato Railway mysql://usuario:clave@host:puerto/db, 
+// Si DATABASE_URL viene en formato Railway mysql://usuario:clave@host:puerto/db,
 // necesitas convertirla a formato para Pomelo MySQL
 if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("mysql://"))
 {
     connectionString = ConvertirDatabaseUrlToMySqlConnectionString(connectionString);
 }
+
+// *** AÑADIR ESTA LINEA PARA LOGUEAR LA CADENA DE CONEXION FINAL ***
+Console.WriteLine($"DEBUG: Usando cadena de conexion: {connectionString}");
 
 // Añadir DbContext con MySQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -29,7 +32,18 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    // db.Database.Migrate(); // Mantenemos esta linea
+    try
+    {
+        db.Database.Migrate();
+        Console.WriteLine("DEBUG: Migraciones aplicadas correctamente.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"ERROR: Fallo al aplicar migraciones: {ex.Message}");
+        // Opcional: relanzar la excepcion si quieres que el despliegue falle
+        // throw;
+    }
 }
 
 // Obtener puerto de variable de entorno (Railway)
@@ -54,7 +68,6 @@ app.Run();
 // Método para convertir DATABASE_URL a cadena de conexión MySQL compatible
 string ConvertirDatabaseUrlToMySqlConnectionString(string databaseUrl)
 {
-    // Ejemplo: mysql://usuario:clave@host:puerto/db
     var uri = new Uri(databaseUrl);
     var userInfo = uri.UserInfo.Split(':');
     var user = userInfo[0];
