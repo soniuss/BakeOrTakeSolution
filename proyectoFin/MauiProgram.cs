@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using proyectoFin.Services;
+using Refit;
 
 namespace proyectoFin
 {
@@ -26,7 +28,7 @@ namespace proyectoFin
 
             // --- Registro de ViewModels ---
             // Descomenta estas lineas para registrar tus ViewModels
-            builder.Services.AddTransient<WelcomeViewModel>();
+            // builder.Services.AddTransient<WelcomeViewModel>();
             // builder.Services.AddTransient<LoginViewModel>(); 
             // builder.Services.AddTransient<RegisterViewModel>(); 
 

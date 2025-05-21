@@ -4,15 +4,44 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar la cadena de conexión
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                             ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Si DATABASE_URL viene en formato Railway mysql://usuario:clave@host:puerto/db,
-// necesitas convertirla a formato para Pomelo MySQL
-if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("mysql://"))
+// Intentar obtener DATABASE_URL de Railway
+var railwayDatabaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+if (!string.IsNullOrEmpty(railwayDatabaseUrl))
 {
-    connectionString = ConvertirDatabaseUrlToMySqlConnectionString(connectionString);
+    // Si DATABASE_URL existe y no esta vacia, usarla y convertirla
+    connectionString = ConvertirDatabaseUrlToMySqlConnectionString(railwayDatabaseUrl);
 }
+else
+{
+    // Si DATABASE_URL no existe o esta vacia, construir la cadena de conexion
+    // usando las variables individuales de MySQL inyectadas por Railway
+    var mysqlHost = Environment.GetEnvironmentVariable("MYSQL_HOST");
+    var mysqlPort = Environment.GetEnvironmentVariable("MYSQL_PORT");
+    var mysqlUser = Environment.GetEnvironmentVariable("MYSQL_USER");
+    var mysqlPassword = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
+    var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+
+    if (
+        !string.IsNullOrEmpty(mysqlHost) &&
+        !string.IsNullOrEmpty(mysqlPort) &&
+        !string.IsNullOrEmpty(mysqlUser) &&
+        !string.IsNullOrEmpty(mysqlDatabase)
+    )
+    {
+        // La contraseña puede ser nula si no hay una definida
+        connectionString = $"Server={mysqlHost};Port={mysqlPort};Database={mysqlDatabase};User={mysqlUser};Password={mysqlPassword};";
+    }
+    else
+    {
+        // Si ninguna variable de Railway esta disponible, se usara la de appsettings.json
+        // (que ya es el valor por defecto de connectionString)
+        Console.WriteLine("ADVERTENCIA: No se encontraron variables de entorno de Railway para MySQL. Usando DefaultConnection de appsettings.json.");
+    }
+}
+
 
 // *** AÑADIR ESTA LINEA PARA LOGUEAR LA CADENA DE CONEXION FINAL ***
 Console.WriteLine($"DEBUG: Usando cadena de conexion: {connectionString}");
@@ -32,7 +61,6 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    // db.Database.Migrate(); // Mantenemos esta linea
     try
     {
         db.Database.Migrate();
