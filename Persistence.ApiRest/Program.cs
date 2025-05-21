@@ -18,11 +18,12 @@ else
 {
     // Si DATABASE_URL no existe o esta vacia, construir la cadena de conexion
     // usando las variables individuales de MySQL inyectadas por Railway
-    var mysqlHost = Environment.GetEnvironmentVariable("MYSQL_HOST");
-    var mysqlPort = Environment.GetEnvironmentVariable("MYSQL_PORT");
-    var mysqlUser = Environment.GetEnvironmentVariable("MYSQL_USER");
-    var mysqlPassword = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
-    var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+    var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST");
+    var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT");
+    var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER");
+    var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD");
+    var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQL_DATABASE"); // este SÍ lleva guion bajo
+
 
     if (
         !string.IsNullOrEmpty(mysqlHost) &&
