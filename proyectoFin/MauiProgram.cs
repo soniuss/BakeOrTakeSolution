@@ -20,7 +20,7 @@ namespace proyectoFin
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-            var baseApiUrl = "https://tu-api-railway.railway.app"; // ¡Reemplaza con tu URL real!
+            var baseApiUrl = "https://bakeortakesolution-production.up.railway.app"; 
 
             builder.Services.AddSingleton(new HttpClient { BaseAddress = new Uri(baseApiUrl) });
             builder.Services.AddRefitClient<IBakeOrTakeApi>()

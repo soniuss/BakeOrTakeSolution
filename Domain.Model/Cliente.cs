@@ -12,8 +12,7 @@ namespace Domain.Model
 
         public string email { get; set; } // Los datos de Usuario se mueven aquí o se gestionan diferente
         public string password { get; set; } // Considera hashing
-        
-
+       
         public string nombre { get; set; }
         public string ubicacion { get; set; }
 

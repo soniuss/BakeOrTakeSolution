@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
+             x:Class="proyectoFin.MVVM.View.WelcomePage"
+             Title="WelcomePage"
+             BackgroundColor="{AppThemeBinding Light=White, Dark=#1A1A1A}">
+
+
+    <Grid RowDefinitions="*,Auto,Auto,Auto,*"
+          ColumnDefinitions="*"
+          Padding="20"
+          VerticalOptions="CenterAndExpand"
+          HorizontalOptions="CenterAndExpand">
+
+        <Image Grid.Row="1"
+               Source="dotnet_bot.png"
+               HeightRequest="150"
+               WidthRequest="150"
+               HorizontalOptions="Center"
+               Margin="0,0,0,20" />
+
+        <Label Grid.Row="2"
+               Text="BakeOrTake"
+               FontSize="48"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               TextColor="{AppThemeBinding Light=Black, Dark=White}"
+               Margin="0,0,0,40" />
+
+        <Button Grid.Row="3"
+                Text="Iniciar Sesión"
+                Clicked="OnLoginButtonClicked"
+                Style="{StaticResource PrimaryButton}"
+                Margin="0,0,0,10"
+                HorizontalOptions="Fill" />
+
+        <Button Grid.Row="4"
+                Text="Registrarse"
+                Clicked="OnRegisterButtonClicked"
+                Style="{StaticResource SecondaryButton}"
+                HorizontalOptions="Fill" />
+
+    </Grid>
+</ContentPage>

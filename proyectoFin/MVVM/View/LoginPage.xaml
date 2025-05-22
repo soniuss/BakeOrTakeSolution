@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
+             xmlns:converters="clr-namespace:proyectoFin.Converters"
+             x:Class="proyectoFin.MVVM.View.LoginPage"
+             Title="LoginPage"
+             BackgroundColor="{AppThemeBinding Light=White, Dark=#1A1A1A}">
+    <ContentPage.Resources>
+        <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="CenterAndExpand">
+
+            <Label Text="Bienvenido de nuevo"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+            <Label Text="Inicia sesión en tu cuenta"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}" />
+
+            <Entry Placeholder="Correo electrónico"
+                   Keyboard="Email"
+                   Text="{Binding Email}"
+                   Style="{StaticResource EntryStyle}" />
+
+            <Entry Placeholder="Contraseña"
+                   IsPassword="True"
+                   Text="{Binding Password}"
+                   Style="{StaticResource EntryStyle}" />
+
+            <Button Text="Iniciar Sesión"
+                    Command="{Binding PerformLoginCommand}"
+                    Style="{StaticResource PrimaryButton}"
+                    IsEnabled="{Binding IsNotBusy}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center"
+                               Color="{StaticResource PrimaryColor}" />
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}}" />
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+                <Label Text="¿No tienes cuenta?" TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                <Button Text="Regístrate aquí"
+                        Style="{StaticResource LinkButton}"
+                        Clicked="OnRegisterButtonClicked" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

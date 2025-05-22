@@ -1,4 +1,6 @@
-﻿namespace proyectoFin
+﻿using proyectoFin.MVVM.View;
+
+namespace proyectoFin
 {
     public partial class App : Application
     {
@@ -6,7 +8,7 @@
         {
             InitializeComponent();
 
-            MainPage = new AppShell();
+            MainPage = new NavigationPage(new WelcomePage());
         }
     }
 }
