@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using proyectoFin.MVVM.Model.ApiRequests;
+using Domain.Model.ApiRequests;
 using proyectoFin.Services;
 using Refit;
 

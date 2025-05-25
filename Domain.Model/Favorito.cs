@@ -9,8 +9,8 @@ namespace Domain.Model
     public class Favorito
     {
         // Clave Primaria Compuesta (Configurada en DbContext)
-        public string id_cliente { get; set; } // Clave Foránea
-        public string id_receta { get; set; } // Clave Foránea
+        public int id_cliente { get; set; } // Clave Foránea
+        public int id_receta { get; set; } // Clave Foránea
 
         // Propiedades de navegación a las entidades relacionadas
         public Cliente Cliente { get; set; }

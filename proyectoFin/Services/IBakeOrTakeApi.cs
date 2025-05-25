@@ -1,5 +1,5 @@
 ﻿using Domain.Model;
-using proyectoFin.MVVM.Model.ApiRequests;
+using Domain.Model.ApiRequests;
 using Refit;
 
 

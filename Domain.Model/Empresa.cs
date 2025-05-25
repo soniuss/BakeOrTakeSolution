@@ -8,13 +8,11 @@ namespace Domain.Model
 {
     public class Empresa 
     {
-        public string id_empresa { get; set; } // Clave Primaria
-
-        public string email { get; set; } // Datos de Usuario movidos aquí
-        public string password { get; set; } // Considera hashing
-        
-
-        public string nombreNegocio { get; set; }
+        public int id_empresa { get; set; } // Clave Primaria
+        public DateTime fecha_registro { get; set; }
+        public string email { get; set; } 
+        public string password_hash { get; set; }
+        public string nombre_negocio { get; set; }
         public string descripcion { get; set; }
         public string ubicacion { get; set; }
 

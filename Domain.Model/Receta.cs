@@ -8,7 +8,7 @@ namespace Domain.Model
 {
     public class Receta
     {
-        public string id_receta { get; set; } // Clave Primaria
+        public int id_receta { get; set; } // Clave Primaria
         public string nombre { get; set; }
         public string descripcion { get; set; }
         public string ingredientes { get; set; }
@@ -16,7 +16,7 @@ namespace Domain.Model
         public string imagenUrl { get; set; }
 
         // Enlace al Cliente creador (lado 'muchos' en la relación 1:N Cliente crea Receta)
-        public string id_cliente_creador { get; set; } // Clave Foránea
+        public int id_cliente_creador { get; set; } // Clave Foránea
         public Cliente ClienteCreador { get; set; } // Propiedad de navegación al Cliente
 
         // Relaciones con otras entidades (ahora Pedido_Oferta y Favorito)

@@ -1,13 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using proyectoFin.MVVM.Model.ApiRequests;
+using Domain.Model.ApiRequests;
 using proyectoFin.Services;
 using Refit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace proyectoFin.MVVM.ViewModel
 {

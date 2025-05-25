@@ -8,11 +8,10 @@ namespace Domain.Model
 {
     public class Cliente 
     {
-        public string id_cliente { get; set; } // Clave Primaria
-
-        public string email { get; set; } // Los datos de Usuario se mueven aquí o se gestionan diferente
-        public string password { get; set; } // Considera hashing
-       
+        public int id_cliente { get; set; } // Clave Primaria
+        public string email { get; set; }
+        public string password_hash { get; set; }
+        public DateTime fecha_registro { get; set; }
         public string nombre { get; set; }
         public string ubicacion { get; set; }
 
