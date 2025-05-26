@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using proyectoFin.MVVM.View;
+using proyectoFin.MVVM.ViewModel;
 using proyectoFin.Services;
 using Refit;
 
@@ -26,12 +28,15 @@ namespace proyectoFin
             builder.Services.AddRefitClient<IBakeOrTakeApi>()
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseApiUrl));
 
-            // --- Registro de ViewModels ---
+             //--- Registro de ViewModels ---
             // Descomenta estas lineas para registrar tus ViewModels
-            // builder.Services.AddTransient<WelcomeViewModel>();
-            // builder.Services.AddTransient<LoginViewModel>(); 
-            // builder.Services.AddTransient<RegisterViewModel>(); 
+             builder.Services.AddTransient<WelcomeViewModel>();
+             builder.Services.AddTransient<LoginViewModel>(); 
+             builder.Services.AddTransient<RegisterViewModel>();
 
+            builder.Services.AddTransient<WelcomePage>(); // Aunque es tu página de inicio, es buena práctica
+            builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<RegisterPage>();
             return builder.Build();
         }
     }

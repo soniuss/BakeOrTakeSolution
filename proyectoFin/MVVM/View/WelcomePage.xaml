@@ -4,9 +4,7 @@
              xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
              x:Class="proyectoFin.MVVM.View.WelcomePage"
              Title="WelcomePage"
-             BackgroundColor="{AppThemeBinding Light=White, Dark=#1A1A1A}">
-
-
+             BackgroundColor="White">
     <Grid RowDefinitions="*,Auto,Auto,Auto,*"
           ColumnDefinitions="*"
           Padding="20"
@@ -26,21 +24,16 @@
                FontAttributes="Bold"
                HorizontalOptions="Center"
                VerticalOptions="Center"
-               TextColor="{AppThemeBinding Light=Black, Dark=White}"
-               Margin="0,0,0,40" />
+               TextColor="Black" Margin="0,0,0,40" />
 
         <Button Grid.Row="3"
                 Text="Iniciar Sesión"
                 Clicked="OnLoginButtonClicked"
-                Style="{StaticResource PrimaryButton}"
                 Margin="0,0,0,10"
                 HorizontalOptions="Fill" />
-
         <Button Grid.Row="4"
                 Text="Registrarse"
                 Clicked="OnRegisterButtonClicked"
-                Style="{StaticResource SecondaryButton}"
                 HorizontalOptions="Fill" />
-
     </Grid>
 </ContentPage>

@@ -4,8 +4,7 @@
              xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
              xmlns:converters="clr-namespace:proyectoFin.Converters"
              x:Class="proyectoFin.MVVM.View.RegisterPage"
-             Title="RegisterPage"
-             BackgroundColor="{AppThemeBinding Light=White, Dark=#1A1A1A}">
+             Title="RegisterPage">
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
@@ -20,60 +19,47 @@
             <Label Text="Crea tu cuenta"
                    FontSize="32"
                    FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                   HorizontalOptions="Center"/>
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10" HorizontalOptions="FillAndExpand">
                 <Button Grid.Column="0"
                         Text="Soy Cliente"
-                        Command="{Binding SelectClientTypeCommand}"
-                        Style="{StaticResource SecondaryButton}"
-                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='PrimaryColor|SecondaryColor'}" />
+                        Command="{Binding SelectClientTypeCommand}"></Button>
 
                 <Button Grid.Column="1"
                         Text="Soy Empresa"
-                        Command="{Binding SelectCompanyTypeCommand}"
-                        Style="{StaticResource SecondaryButton}"
-                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='SecondaryColor|PrimaryColor'}" />
+                        Command="{Binding SelectCompanyTypeCommand}"></Button>
             </Grid>
 
             <Entry Placeholder="Correo electrónico"
                    Keyboard="Email"
-                   Text="{Binding Email}"
-                   Style="{StaticResource EntryStyle}" />
+                   Text="{Binding Email}" />
 
             <Entry Placeholder="Contraseña"
                    IsPassword="True"
-                   Text="{Binding Password}"
-                   Style="{StaticResource EntryStyle}" />
+                   Text="{Binding Password}" />
 
             <Entry Placeholder="Confirmar contraseña"
                    IsPassword="True"
-                   Text="{Binding ConfirmPassword}"
-                   Style="{StaticResource EntryStyle}" />
+                   Text="{Binding ConfirmPassword}" />
 
             <Entry Placeholder="{Binding IsClientSelected, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Tu Nombre|Nombre del Negocio'}"
-                   Text="{Binding Nombre}"
-                   Style="{StaticResource EntryStyle}" />
+                   Text="{Binding Nombre}" />
 
             <Entry Placeholder="Ubicación"
-                   Text="{Binding Ubicacion}"
-                   Style="{StaticResource EntryStyle}" />
+                   Text="{Binding Ubicacion}" />
 
             <Entry Placeholder="Descripción del negocio"
                    Text="{Binding Descripcion}"
-                   Style="{StaticResource EntryStyle}"
                    IsVisible="{Binding IsClientSelected, Converter={StaticResource InverseBoolConverter}}" />
 
             <Button Text="Registrarse"
                     Command="{Binding PerformRegisterCommand}"
-                    Style="{StaticResource PrimaryButton}"
                     IsEnabled="{Binding IsNotBusy}" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
-                               HorizontalOptions="Center"
-                               Color="{StaticResource PrimaryColor}" />
+                               HorizontalOptions="Center" />
 
             <Label Text="{Binding ErrorMessage}"
                    TextColor="Red"
@@ -81,9 +67,8 @@
                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}}" />
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
-                <Label Text="¿Ya tienes cuenta?" TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                <Label Text="¿Ya tienes cuenta?" />
                 <Button Text="Inicia sesión aquí"
-                        Style="{StaticResource LinkButton}"
                         Clicked="OnLoginButtonClicked" />
             </HorizontalStackLayout>
 

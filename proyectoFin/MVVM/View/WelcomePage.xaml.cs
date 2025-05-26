@@ -1,27 +1,30 @@
 using proyectoFin.MVVM.ViewModel;
+using Microsoft.Extensions.DependencyInjection; // ¡Importante añadir este using!
 
 namespace proyectoFin.MVVM.View;
 
 public partial class WelcomePage : ContentPage
 {
-	public WelcomePage()
-	{
-		InitializeComponent();
-        BindingContext = Application.Current.Handler.MauiContext.Services.GetService<WelcomeViewModel>();
-
+    // Inyecta el ViewModel en el constructor
+    public WelcomePage(WelcomeViewModel viewModel)
+    {
+        InitializeComponent();
+        BindingContext = viewModel; // Asigna el ViewModel inyectado
     }
+
     // Manejador para el evento Clicked del boton "Iniciar Sesion"
     private async void OnLoginButtonClicked(object sender, EventArgs e)
     {
-        // Navega a la LoginPage.
-        // Navigation es una propiedad de ContentPage cuando esta dentro de una NavigationPage.
-        await Navigation.PushAsync(new LoginPage());
+        // *** CAMBIO CRÍTICO AQUÍ: Obtener la LoginPage del contenedor de servicios ***
+        var loginPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<LoginPage>();
+        await Navigation.PushAsync(loginPage);
     }
 
     // Manejador para el evento Clicked del boton "Registrarse"
     private async void OnRegisterButtonClicked(object sender, EventArgs e)
     {
-        // Navega a la RegisterPage.
-        await Navigation.PushAsync(new RegisterPage());
+        // *** CAMBIO CRÍTICO AQUÍ: Obtener la RegisterPage del contenedor de servicios ***
+        var registerPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<RegisterPage>();
+        await Navigation.PushAsync(registerPage);
     }
 }
