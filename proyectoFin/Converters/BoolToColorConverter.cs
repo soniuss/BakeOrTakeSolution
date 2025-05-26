@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// BoolToColorConverter.cs (DESPUÉS)
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Maui.Controls;
 
 namespace proyectoFin.Converters
 {
@@ -11,19 +8,31 @@ namespace proyectoFin.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool isTrue && parameter is string colors)
+            if (value is bool boolValue && parameter is string colorParams)
             {
-                var colorArray = colors.Split('|');
-                if (colorArray.Length == 2)
+                var colors = colorParams.Split('|');
+                if (colors.Length == 2)
                 {
-                    // Asume que los nombres de los colores estan definidos en tus Resources/Styles.xaml
-                    // (ej. PrimaryColor, SecondaryColor)
-                    var trueColor = (Color)App.Current.Resources[colorArray[0]];
-                    var falseColor = (Color)App.Current.Resources[colorArray[1]];
-                    return isTrue ? trueColor : falseColor;
+                    string trueColorHex = colors[0];
+                    string falseColorHex = colors[1];
+
+                    try
+                    {
+                        // Intentamos parsear la cadena hexadecimal a un objeto Color
+                        Color trueColor = Color.FromArgb(trueColorHex);
+                        Color falseColor = Color.FromArgb(falseColorHex);
+
+                        return boolValue ? trueColor : falseColor;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Manejo de errores si la cadena no es un formato de color válido
+                        System.Diagnostics.Debug.WriteLine($"Error al convertir color hexadecimal: {ex.Message}");
+                        return Colors.Transparent; // Devuelve un color por defecto en caso de error
+                    }
                 }
             }
-            return Colors.Transparent; // Color por defecto si hay un problema
+            return Colors.Transparent; // Valor por defecto si los parámetros no son válidos
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

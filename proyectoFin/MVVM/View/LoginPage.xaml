@@ -4,9 +4,28 @@
              xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
              xmlns:converters="clr-namespace:proyectoFin.Converters"
              x:Class="proyectoFin.MVVM.View.LoginPage"
-             Title="LoginPage">
+             Title="LoginPage"
+             BackgroundColor="#FFE7EA">
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+
+        <Style TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="10"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
+            <Setter Property="Padding" Value="15,0"/>
+        </Style>
+
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="PlaceholderColor" Value="#7A5E48"/>
+            <Setter Property="HeightRequest" Value="50"/>
+        </Style>
+
     </ContentPage.Resources>
 
     <ScrollView>
@@ -15,38 +34,44 @@
             <Label Text="Bienvenido de nuevo"
                    FontSize="32"
                    FontAttributes="Bold"
-                   HorizontalOptions="Center" />
-
+                   HorizontalOptions="Center"
+                   TextColor="#5C4033" />
             <Label Text="Inicia sesión en tu cuenta"
                    FontSize="16"
-                   HorizontalOptions="Center" />
+                   HorizontalOptions="Center"
+                   TextColor="#7A5E48" />
+            <Border>
+                <Entry Placeholder="Correo electrónico" Keyboard="Email" Text="{Binding Email}" />
+            </Border>
 
-            <Entry Placeholder="Correo electrónico"
-                   Keyboard="Email"
-                   Text="{Binding Email}" />
-
-            <Entry Placeholder="Contraseña"
-                   IsPassword="True"
-                   Text="{Binding Password}" />
+            <Border>
+                <Entry Placeholder="Contraseña" IsPassword="True" Text="{Binding Password}" />
+            </Border>
 
             <Button Text="Iniciar Sesión"
                     Command="{Binding PerformLoginCommand}"
-                    Style="{StaticResource PrimaryButton}"
-                    IsEnabled="{Binding IsNotBusy}" />
+                    IsEnabled="{Binding IsNotBusy}"
+                    BackgroundColor="#5C4033" TextColor="#FFF5E1" CornerRadius="15"
+                    HeightRequest="55"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    Margin="0,10,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
-                               HorizontalOptions="Center" />
+                               Color="#FF6F61" HorizontalOptions="Center" />
 
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="Red"
-                   HorizontalOptions="Center"
+                   TextColor="#FF6F61" HorizontalOptions="Center"
                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}}" />
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
-                <Label Text="¿No tienes cuenta?"  />
+                <Label Text="¿No tienes cuenta?"
+                       TextColor="#7A5E48" />
                 <Button Text="Regístrate aquí"
-                        Clicked="OnRegisterButtonClicked" />
+                        Clicked="OnRegisterButtonClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="#FF8FAB" FontSize="15" />
             </HorizontalStackLayout>
 
         </VerticalStackLayout>

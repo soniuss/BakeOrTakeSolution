@@ -4,7 +4,7 @@
              xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
              x:Class="proyectoFin.MVVM.View.WelcomePage"
              Title="WelcomePage"
-             BackgroundColor="White">
+             BackgroundColor="#FFE7EA">
     <Grid RowDefinitions="*,Auto,Auto,Auto,*"
           ColumnDefinitions="*"
           Padding="20"
@@ -12,9 +12,8 @@
           HorizontalOptions="CenterAndExpand">
 
         <Image Grid.Row="1"
-               Source="dotnet_bot.png"
-               HeightRequest="150"
-               WidthRequest="150"
+               Source="osito_bakeortake.png" HeightRequest="200"
+               WidthRequest="200"
                HorizontalOptions="Center"
                Margin="0,0,0,20" />
 
@@ -24,16 +23,25 @@
                FontAttributes="Bold"
                HorizontalOptions="Center"
                VerticalOptions="Center"
-               TextColor="Black" Margin="0,0,0,40" />
+               TextColor="#5C4033" Margin="0,0,0,40" />
 
         <Button Grid.Row="3"
                 Text="Iniciar Sesión"
                 Clicked="OnLoginButtonClicked"
                 Margin="0,0,0,10"
-                HorizontalOptions="Fill" />
+                HorizontalOptions="Fill"
+                BackgroundColor="#5C4033" TextColor="#FFF5E1" CornerRadius="15"
+                HeightRequest="55"
+                FontSize="20"
+                FontAttributes="Bold"/>
+
         <Button Grid.Row="4"
                 Text="Registrarse"
                 Clicked="OnRegisterButtonClicked"
-                HorizontalOptions="Fill" />
+                HorizontalOptions="Fill"
+                BackgroundColor="#FF8FAB" TextColor="#5C4033" CornerRadius="15"
+                HeightRequest="55"
+                FontSize="20"
+                FontAttributes="Bold"/>
     </Grid>
 </ContentPage>

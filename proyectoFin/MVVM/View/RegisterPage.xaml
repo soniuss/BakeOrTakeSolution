@@ -4,12 +4,31 @@
              xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
              xmlns:converters="clr-namespace:proyectoFin.Converters"
              x:Class="proyectoFin.MVVM.View.RegisterPage"
-             Title="RegisterPage">
+             Title="RegisterPage"
+             BackgroundColor="#FFE7EA">
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
+
+        <Style TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="10"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
+            <Setter Property="Padding" Value="15,0"/>
+        </Style>
+
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="PlaceholderColor" Value="#7A5E48"/>
+            <Setter Property="HeightRequest" Value="50"/>
+        </Style>
+
     </ContentPage.Resources>
 
 
@@ -19,57 +38,71 @@
             <Label Text="Crea tu cuenta"
                    FontSize="32"
                    FontAttributes="Bold"
-                   HorizontalOptions="Center"/>
-
+                   HorizontalOptions="Center"
+                   TextColor="#5C4033"/>
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10" HorizontalOptions="FillAndExpand">
                 <Button Grid.Column="0"
                         Text="Soy Cliente"
-                        Command="{Binding SelectClientTypeCommand}"></Button>
+                        Command="{Binding SelectClientTypeCommand}"
+                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#FF6F61|#FF8FAB'}" TextColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='White|#5C4033'}" CornerRadius="10"
+                        HeightRequest="50"
+                        FontSize="16"/>
 
                 <Button Grid.Column="1"
                         Text="Soy Empresa"
-                        Command="{Binding SelectCompanyTypeCommand}"></Button>
+                        Command="{Binding SelectCompanyTypeCommand}"
+                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource InverseBoolConverter}, ConverterParameter='#FF6F61|#FF8FAB'}" TextColor="{Binding IsClientSelected, Converter={StaticResource InverseBoolConverter}, ConverterParameter='White|#5C4033'}" CornerRadius="10"
+                        HeightRequest="50"
+                        FontSize="16"/>
             </Grid>
 
-            <Entry Placeholder="Correo electrónico"
-                   Keyboard="Email"
-                   Text="{Binding Email}" />
+            <Border>
+                <Entry Placeholder="Correo electrónico" Keyboard="Email" Text="{Binding Email}" />
+            </Border>
 
-            <Entry Placeholder="Contraseña"
-                   IsPassword="True"
-                   Text="{Binding Password}" />
+            <Border>
+                <Entry Placeholder="Contraseña" IsPassword="True" Text="{Binding Password}" />
+            </Border>
 
-            <Entry Placeholder="Confirmar contraseña"
-                   IsPassword="True"
-                   Text="{Binding ConfirmPassword}" />
+            <Border>
+                <Entry Placeholder="Confirmar contraseña" IsPassword="True" Text="{Binding ConfirmPassword}" />
+            </Border>
 
-            <Entry Placeholder="{Binding IsClientSelected, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Tu Nombre|Nombre del Negocio'}"
-                   Text="{Binding Nombre}" />
+            <Border>
+                <Entry Placeholder="{Binding IsClientSelected, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Tu Nombre|Nombre del Negocio'}" Text="{Binding Nombre}" />
+            </Border>
 
-            <Entry Placeholder="Ubicación"
-                   Text="{Binding Ubicacion}" />
+            <Border>
+                <Entry Placeholder="Ubicación" Text="{Binding Ubicacion}" />
+            </Border>
 
-            <Entry Placeholder="Descripción del negocio"
-                   Text="{Binding Descripcion}"
-                   IsVisible="{Binding IsClientSelected, Converter={StaticResource InverseBoolConverter}}" />
+            <Border IsVisible="{Binding IsClientSelected, Converter={StaticResource InverseBoolConverter}}">
+                <Entry Placeholder="Descripción del negocio" Text="{Binding Descripcion}" />
+            </Border>
 
             <Button Text="Registrarse"
                     Command="{Binding PerformRegisterCommand}"
-                    IsEnabled="{Binding IsNotBusy}" />
+                    IsEnabled="{Binding IsNotBusy}"
+                    BackgroundColor="#5C4033" TextColor="#FFF5E1" CornerRadius="15"
+                    HeightRequest="55"
+                    FontSize="18"
+                    FontAttributes="Bold"/>
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
-                               HorizontalOptions="Center" />
+                               Color="#FF6F61" HorizontalOptions="Center" />
 
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="Red"
-                   HorizontalOptions="Center"
+                   TextColor="#FF6F61" HorizontalOptions="Center"
                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}}" />
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
-                <Label Text="¿Ya tienes cuenta?" />
+                <Label Text="¿Ya tienes cuenta?"
+                       TextColor="#7A5E48"/>
                 <Button Text="Inicia sesión aquí"
-                        Clicked="OnLoginButtonClicked" />
+                        Clicked="OnLoginButtonClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="#FF8FAB" FontSize="15"/>
             </HorizontalStackLayout>
 
         </VerticalStackLayout>
