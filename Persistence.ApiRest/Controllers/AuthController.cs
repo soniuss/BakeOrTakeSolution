@@ -60,6 +60,81 @@ namespace Persistence.ApiRest.Controllers
 
             return Unauthorized("Credenciales inválidas.");
         }
+        // Endpoint para registrar un cliente
+        [HttpPost("register/cliente")]
+        public async Task<IActionResult> RegisterCliente([FromBody] ClienteRegistrationRequest request)
+        {
+            // PON EL BREAKPOINT AQUÍ (al principio del método)
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.Nombre) || string.IsNullOrWhiteSpace(request.Ubicacion))
+            {
+                return BadRequest("Todos los campos de cliente son obligatorios.");
+            }
+
+            // Verificar si el email ya existe para un cliente
+            if (await _context.Clientes.AnyAsync(c => c.email == request.Email))
+            { // request.Email (DTO PascalCase) vs c.email (Model lowercase)
+                return BadRequest("El email ya está registrado como cliente.");
+            }
+
+            // Verificar si el email ya existe para una empresa
+            if (await _context.Empresas.AnyAsync(e => e.email == request.Email))
+            { // request.Email (DTO PascalCase) vs e.email (Model lowercase)
+                return BadRequest("El email ya está registrado como empresa.");
+            }
+
+            var newClient = new Cliente
+            {
+                email = request.Email,          // Mapeo: DTO.Email (PascalCase) -> Model.email (lowercase)
+                password_hash = request.Password, // Mapeo: DTO.Password (PascalCase) -> Model.password_hash
+                nombre = request.Nombre,        // Mapeo: DTO.Nombre (PascalCase) -> Model.nombre (lowercase)
+                ubicacion = request.Ubicacion   // Mapeo: DTO.Ubicacion (PascalCase) -> Model.ubicacion (lowercase)
+            };
+
+            _context.Clientes.Add(newClient);
+            await _context.SaveChangesAsync(); // POSIBLE LUGAR DE ERROR: PON OTRO BREAKPOINT AQUÍ
+
+            return Ok(new { Message = "Registro de cliente exitoso", UserId = newClient.id_cliente });
+        }
+
+        // Endpoint para registrar una empresa
+        [HttpPost("register/empresa")]
+        public async Task<IActionResult> RegisterEmpresa([FromBody] EmpresaRegistrationRequest request)
+        {
+            // PON EL BREAKPOINT AQUÍ (al principio del método)
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.NombreNegocio) || string.IsNullOrWhiteSpace(request.Descripcion) || // ¡Usar NombreNegocio aquí!
+                string.IsNullOrWhiteSpace(request.Ubicacion))
+            {
+                return BadRequest("Todos los campos de empresa son obligatorios.");
+            }
+
+            // Verificar si el email ya existe para un cliente
+            if (await _context.Clientes.AnyAsync(c => c.email == request.Email))
+            {
+                return BadRequest("El email ya está registrado como cliente.");
+            }
+
+            // Verificar si el email ya existe para una empresa
+            if (await _context.Empresas.AnyAsync(e => e.email == request.Email))
+            {
+                return BadRequest("El email ya está registrado como empresa.");
+            }
+
+            var newEmpresa = new Empresa
+            {
+                email = request.Email,
+                password_hash = request.Password,
+                nombre_negocio = request.NombreNegocio, // ¡Mapeo: DTO.NombreNegocio -> Model.nombre_negocio!
+                descripcion = request.Descripcion,
+                ubicacion = request.Ubicacion
+            };
+
+            _context.Empresas.Add(newEmpresa);
+            await _context.SaveChangesAsync(); // POSIBLE LUGAR DE ERROR: PON OTRO BREAKPOINT AQUÍ
+
+            return Ok(new { Message = "Registro de empresa exitoso", UserId = newEmpresa.id_empresa });
+        }
 
         // Metodo para generar un token JWT
         private string GenerateJwtToken(int userId, string userType)

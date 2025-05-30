@@ -6,6 +6,7 @@
              x:Class="proyectoFin.MVVM.View.RegisterPage"
              Title="RegisterPage"
              BackgroundColor="#FFE7EA">
+
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
@@ -31,7 +32,6 @@
 
     </ContentPage.Resources>
 
-
     <ScrollView>
         <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="CenterAndExpand">
 
@@ -40,18 +40,23 @@
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
                    TextColor="#5C4033"/>
+
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10" HorizontalOptions="FillAndExpand">
                 <Button Grid.Column="0"
                         Text="Soy Cliente"
                         Command="{Binding SelectClientTypeCommand}"
-                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#FF6F61|#FF8FAB'}" TextColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='White|#5C4033'}" CornerRadius="10"
+                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#FF6F61|#FF8FAB'}"
+                        TextColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='White|#5C4033'}"
+                        CornerRadius="10"
                         HeightRequest="50"
                         FontSize="16"/>
 
                 <Button Grid.Column="1"
                         Text="Soy Empresa"
                         Command="{Binding SelectCompanyTypeCommand}"
-                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource InverseBoolConverter}, ConverterParameter='#FF6F61|#FF8FAB'}" TextColor="{Binding IsClientSelected, Converter={StaticResource InverseBoolConverter}, ConverterParameter='White|#5C4033'}" CornerRadius="10"
+                        BackgroundColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#FF8FAB|#FF6F61'}"
+                        TextColor="{Binding IsClientSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#5C4033|White'}"
+                        CornerRadius="10"
                         HeightRequest="50"
                         FontSize="16"/>
             </Grid>

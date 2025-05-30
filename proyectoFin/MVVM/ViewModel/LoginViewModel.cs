@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Domain.Model.ApiRequests;
+using proyectoFin.MVVM.View;
 using proyectoFin.Services;
 using Refit;
 
@@ -53,11 +54,13 @@ namespace proyectoFin.MVVM.ViewModel
                     // Reemplazamos la MainPage de la aplicacion para evitar volver al login con el boton atras
                     if (loginResult.UserType == "Cliente")
                     {
-                        Application.Current.MainPage = new NavigationPage(new View.ClientMainPage());
+                        var clientMainPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<ClientMainPage>();
+                        Application.Current.MainPage = new NavigationPage(clientMainPage);
                     }
                     else if (loginResult.UserType == "Empresa")
                     {
-                        Application.Current.MainPage = new NavigationPage(new View.EmpresaMainPage()); // Necesitas crear esta pagina
+                        var empresaMainPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<EmpresaMainPage>();
+                        Application.Current.MainPage = new NavigationPage(empresaMainPage); // Necesitas crear esta pagina
                     }
                     else
                     {

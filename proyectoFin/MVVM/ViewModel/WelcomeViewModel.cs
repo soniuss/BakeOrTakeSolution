@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using proyectoFin.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,13 @@ namespace proyectoFin.MVVM.ViewModel
 {
     public partial class WelcomeViewModel : ObservableObject
     {
-        public WelcomeViewModel()
+        private readonly IBakeOrTakeApi _apiService;
+        private readonly IServiceProvider _serviceProvider; // Opcional, si WelcomeViewModel necesita navegar directamente
+
+        public WelcomeViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider) // Recibe IServiceProvider
         {
-            // Este ViewModel no necesita servicios inyectados por ahora.
+            _apiService = apiService;
+            _serviceProvider = serviceProvider; // Si WelcomeViewModel también necesita resolver otras páginas/VMs
         }
 
         // Comando para ir a la pagina de inicio de sesion.

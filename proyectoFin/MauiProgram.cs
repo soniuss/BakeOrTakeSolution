@@ -22,21 +22,29 @@ namespace proyectoFin
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-            var baseApiUrl = "https://bakeortakesolution-production.up.railway.app"; 
+            var baseApiUrl = "https://bakeortakesolution-production.up.railway.app/"; 
 
             builder.Services.AddSingleton(new HttpClient { BaseAddress = new Uri(baseApiUrl) });
             builder.Services.AddRefitClient<IBakeOrTakeApi>()
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseApiUrl));
 
-             //--- Registro de ViewModels ---
-            // Descomenta estas lineas para registrar tus ViewModels
-             builder.Services.AddTransient<WelcomeViewModel>();
-             builder.Services.AddTransient<LoginViewModel>(); 
-             builder.Services.AddTransient<RegisterViewModel>();
+            //--- Registro de ViewModels ---
+            builder.Services.AddSingleton<LoginViewModel>();
+            builder.Services.AddTransient<RegisterViewModel>(); // Transient porque cada registro es nuevo
+            builder.Services.AddTransient<ClientMainViewModel>(); // Transient para que cada vez sea una nueva instancia
+            builder.Services.AddTransient<EmpresaMainViewModel>(); // Transient
+            builder.Services.AddTransient<RecetaDetalleViewModel>(); // Transient
+            builder.Services.AddTransient<WelcomeViewModel>(); // Transient si se recrea al cerrar sesión
 
-            builder.Services.AddTransient<WelcomePage>(); // Aunque es tu página de inicio, es buena práctica
-            builder.Services.AddTransient<LoginPage>();
-            builder.Services.AddTransient<RegisterPage>();
+            // Registro de Páginas (la mayoría AddTransient)
+            builder.Services.AddTransient<LoginPage>(); // Transient si se vuelve a crear
+            builder.Services.AddTransient<RegisterPage>(); // Transient
+            builder.Services.AddTransient<WelcomePage>(); // Transient
+            builder.Services.AddTransient<ClientMainPage>(); // Transient
+            builder.Services.AddTransient<EmpresaMainPage>(); // Transient
+            builder.Services.AddTransient<RecetaDetallePage>(); // Transient
+
+
             return builder.Build();
         }
     }

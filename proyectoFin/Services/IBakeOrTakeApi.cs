@@ -10,11 +10,11 @@ namespace proyectoFin.Services
         [Get("/api/Recetas")]
         Task<ApiResponse<List<Receta>>> GetRecetasAsync();
 
-        [Post("/api/Clientes/register")]
-        Task<ApiResponse<Cliente>> RegisterClienteAsync([Body] ClienteRegistrationRequest request);
+        [Post("/api/Auth/register/cliente")]
+        Task<Refit.ApiResponse<Domain.Model.Cliente>> RegisterClienteAsync([Body] ClienteRegistrationRequest request);
 
-        [Post("/api/Empresas/register")]
-        Task<ApiResponse<Empresa>> RegisterEmpresaAsync([Body] EmpresaRegistrationRequest request);
+        [Post("/api/Auth/register/empresa")]
+        Task<Refit.ApiResponse<Domain.Model.Empresa>> RegisterEmpresaAsync([Body] EmpresaRegistrationRequest request);
 
         [Post("/api/Auth/login")]
         Task<ApiResponse<LoginResponse>> LoginAsync([Body] LoginRequest request);
