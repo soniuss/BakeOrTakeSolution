@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
+             xmlns:model="clr-namespace:Domain.Model;assembly=Domain.Model"
+             x:DataType="viewmodel:MyRecipesViewModel"
+             x:Class="proyectoFin.MVVM.View.MyRecipesPage"
+             Title="Mis Recetas"
+             BackgroundColor="#FFE7EA">
+
+    <ContentPage.Resources>
+        <Style TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="10"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto"
+          Padding="20">
+        <Label Text="Mis Recetas Creadas"
+               TextColor="#5C4033"
+               FontSize="32"
+               FontAttributes="Bold"
+               Margin="0,0,0,20"/>
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding MyRecipes}"
+                        SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="model:Receta">
+                    <Border>
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="{Binding nombre}" FontSize="Medium" FontAttributes="Bold" TextColor="#5C4033" />
+                            <Label Text="{Binding descripcion}" FontSize="Small" TextColor="#7A5E48" MaxLines="2" LineBreakMode="TailTruncation" />
+                            <Image Source="{Binding imagenUrl}"
+                                   Aspect="AspectFill"
+                                   HeightRequest="150"
+                                   Margin="0,10,0,0" />
+
+                            <HorizontalStackLayout HorizontalOptions="End" Spacing="10" Margin="0,10,0,0">
+                                <Button Text="Editar"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyRecipesViewModel}}, Path=EditRecipeCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#FF8FAB"
+                                        TextColor="#5C4033"
+                                        CornerRadius="10"
+                                        FontSize="Small"
+                                        Padding="10,5"/>
+                                <Button Text="Eliminar"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyRecipesViewModel}}, Path=DeleteRecipeCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#FF6F61"
+                                        TextColor="White"
+                                        CornerRadius="10"
+                                        FontSize="Small"
+                                        Padding="10,5"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="2"
+                Text="Añadir Nueva Receta"
+                Command="{Binding AddNewRecipeCommand}"
+                IsEnabled="{Binding IsNotBusy}"
+                BackgroundColor="#5C4033"
+                TextColor="#FFF5E1"
+                CornerRadius="15"
+                HeightRequest="55"
+                FontSize="18"
+                FontAttributes="Bold"
+                Margin="0,20,0,0"/>
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           Color="#FF6F61"
+                           Grid.Row="1"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+
+        <Label Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               HorizontalOptions="Center"
+               IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}"
+               Grid.Row="2"
+               Margin="0,10,0,0"/>
+    </Grid>
+</ContentPage>

@@ -28,21 +28,41 @@ namespace proyectoFin
             builder.Services.AddRefitClient<IBakeOrTakeApi>()
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseApiUrl));
 
-            //--- Registro de ViewModels ---
-            builder.Services.AddSingleton<LoginViewModel>();
-            builder.Services.AddTransient<RegisterViewModel>(); // Transient porque cada registro es nuevo
-            builder.Services.AddTransient<ClientMainViewModel>(); // Transient para que cada vez sea una nueva instancia
-            builder.Services.AddTransient<EmpresaMainViewModel>(); // Transient
-            builder.Services.AddTransient<RecetaDetalleViewModel>(); // Transient
-            builder.Services.AddTransient<WelcomeViewModel>(); // Transient si se recrea al cerrar sesión
+            // --- Registro de ViewModels ---
+            // Se registran como Transient para que se cree una nueva instancia
+            // cada vez que se soliciten, lo cual es común para ViewModels asociados a páginas.
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<RegisterViewModel>();
+            builder.Services.AddTransient<ClientMainViewModel>();
+            builder.Services.AddTransient<EmpresaMainViewModel>();
+            builder.Services.AddTransient<RecetaDetalleViewModel>();
+            builder.Services.AddTransient<WelcomeViewModel>();
+            builder.Services.AddTransient<ProfileViewModel>();
+            builder.Services.AddTransient<RecipesViewModel>();
+            builder.Services.AddTransient<MyRecipesViewModel>();
+            builder.Services.AddTransient<FavoritesViewModel>();
+            builder.Services.AddTransient<EmpresaDashboardViewModel>();
+            builder.Services.AddTransient<ManageRecipesViewModel>(); // Asegúrate de que este nombre de clase coincide con el archivo ManageRecipesViewModel.cs
+            builder.Services.AddTransient<EmpresaProfileViewModel>(); // El ViewModel para el perfil de la empresa
+            builder.Services.AddTransient<RecipeFormPage>(); 
 
-            // Registro de Páginas (la mayoría AddTransient)
-            builder.Services.AddTransient<LoginPage>(); // Transient si se vuelve a crear
-            builder.Services.AddTransient<RegisterPage>(); // Transient
-            builder.Services.AddTransient<WelcomePage>(); // Transient
-            builder.Services.AddTransient<ClientMainPage>(); // Transient
-            builder.Services.AddTransient<EmpresaMainPage>(); // Transient
-            builder.Services.AddTransient<RecetaDetallePage>(); // Transient
+
+            // --- Registro de Páginas ---
+            // La mayoría se registran como Transient para obtener nuevas instancias al navegar.
+            builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<RegisterPage>();
+            builder.Services.AddTransient<WelcomePage>();
+            builder.Services.AddTransient<ClientMainPage>();
+            builder.Services.AddTransient<EmpresaMainPage>();
+            builder.Services.AddTransient<RecetaDetallePage>();
+            builder.Services.AddTransient<ProfilePage>();
+            builder.Services.AddTransient<RecipesPage>();
+            builder.Services.AddTransient<MyRecipesPage>();
+            builder.Services.AddTransient<FavoritesPage>();
+            builder.Services.AddTransient<MyOrdersPage>(); // Para la página de pedidos (clientes y/o empresas)
+            builder.Services.AddTransient<ManageRecipesPage>(); // Para la página de gestión de recetas de empresa
+            builder.Services.AddTransient<CompanyProfilePage>(); // La página de perfil de empresa
+            builder.Services.AddTransient<RecipeFormPage>();
 
 
             return builder.Build();

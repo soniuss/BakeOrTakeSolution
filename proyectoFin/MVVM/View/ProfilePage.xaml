@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
+             x:DataType="viewmodel:ProfileViewModel" x:Class="proyectoFin.MVVM.View.ProfilePage"
+             Title="Mi Perfil">
+
+
+    <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="CenterAndExpand">
+        <Label Text="Página de Perfil"
+               FontSize="Title"
+               HorizontalOptions="Center" />
+
+        <Label Text="{Binding UserName}"
+               FontSize="Medium"
+               HorizontalOptions="Center" />
+
+        <Label Text="{Binding UserEmail}"
+               FontSize="Small"
+               TextColor="Gray"
+               HorizontalOptions="Center" />
+
+        <Button Text="Editar Perfil"
+                Command="{Binding EditProfileCommand}"
+                HorizontalOptions="Center" />
+
+    </VerticalStackLayout>
+</ContentPage>

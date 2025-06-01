@@ -1,76 +1,71 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using proyectoFin.Services;
-using Microsoft.Maui.Storage;
 using Microsoft.Maui.Controls;
 using System;
+using System.Threading.Tasks;
+using proyectoFin.Services;
 using proyectoFin.MVVM.View;
+using Domain.Model; // ¡IMPORTANTE! Para tus clases de dominio si las usas aquí
 
 namespace proyectoFin.MVVM.ViewModel
 {
     public partial class EmpresaMainViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
-        private readonly IServiceProvider _serviceProvider; // Necesario para cerrar sesion
+        private readonly IServiceProvider _serviceProvider;
 
-        [ObservableProperty]
-        private string _welcomeMessage; // Ejemplo de propiedad
+        public IRelayCommand NavigateToMyOrdersCommand { get; }
+        public IRelayCommand NavigateToManageRecipesCommand { get; }
+        public IRelayCommand NavigateToCompanyProfileCommand { get; }
+        public IRelayCommand LogoutCommand { get; }
 
         public EmpresaMainViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
             _serviceProvider = serviceProvider;
-            LoadWelcomeMessage(); // Llama a un método para cargar un mensaje inicial
+
+            NavigateToMyOrdersCommand = new RelayCommand(async () => await NavigateToPage<MyOrdersPage>()); // Asume MyOrdersPage
+            NavigateToManageRecipesCommand = new RelayCommand(async () => await NavigateToPage<ManageRecipesPage>()); // Asume ManageRecipesPage
+            NavigateToCompanyProfileCommand = new RelayCommand(async () => await NavigateToPage<CompanyProfilePage>()); // Asume CompanyProfilePage
+            LogoutCommand = new RelayCommand(async () => await PerformLogout());
         }
 
-        private async void LoadWelcomeMessage()
+        private async Task NavigateToPage<TPage>() where TPage : Page
         {
-            // Aquí podrías cargar datos específicos de la empresa, como su nombre
-            // a partir del SecureStorage (si guardaste el nombre o puedes obtenerlo con el ID)
-            var userName = await SecureStorage.GetAsync("user_name") ?? "Empresa"; // Asumiendo que guardaste el nombre del negocio
-            WelcomeMessage = $"¡Bienvenido, {userName}!";
-        }
+            var page = _serviceProvider.GetService<TPage>();
 
-        [RelayCommand]
-        private async Task CerrarSesion()
-        {
-            try
+            if (page != null)
             {
-                await SecureStorage.SetAsync("jwt_token", null);
-                await SecureStorage.SetAsync("user_type", null);
-                await SecureStorage.SetAsync("user_id", null);
-                await SecureStorage.SetAsync("user_name", null); // Si también guardaste el nombre
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error limpiando SecureStorage al cerrar sesión de empresa: {ex.Message}");
-            }
-
-            // Redirige a la página de bienvenida (login/registro)
-            var welcomePage = _serviceProvider.GetService<WelcomePage>();
-            if (welcomePage != null)
-            {
-                Application.Current.MainPage = new NavigationPage(welcomePage);
+                if (Application.Current.MainPage is FlyoutPage flyoutPage)
+                {
+                    if (flyoutPage.Detail is NavigationPage navigationPage)
+                    {
+                        await navigationPage.PopToRootAsync();
+                        await navigationPage.PushAsync(page);
+                        flyoutPage.IsPresented = false;
+                    }
+                    else
+                    {
+                        flyoutPage.Detail = new NavigationPage(page);
+                        flyoutPage.IsPresented = false;
+                    }
+                }
             }
             else
             {
-                // Fallback si no se puede resolver WelcomePage (idealmente no debería pasar)
-                Application.Current.MainPage = new NavigationPage(
-                    new WelcomePage(
-                        new WelcomeViewModel(
-                            _serviceProvider.GetService<IBakeOrTakeApi>(),
-                            _serviceProvider
-                        )
-                    )
-                );
+                Console.WriteLine($"Error: La página {typeof(TPage).Name} no pudo ser resuelta.");
+                await Application.Current.MainPage.DisplayAlert("Error de navegación", $"No se pudo cargar la página {typeof(TPage).Name}.", "OK");
             }
         }
 
-        // Puedes añadir más comandos o propiedades según las funcionalidades de la empresa:
-        // [RelayCommand]
-        // private async Task GoToMisOfertas() { /* ... */ }
-
-        // [RelayCommand]
-        // private async Task GoToGestionarPedidos() { /* ... */ }
+        private async Task PerformLogout()
+        {
+            await Application.Current.MainPage.DisplayAlert("Sesión Finalizada", "Has cerrado sesión como Empresa.", "OK");
+            var loginPage = _serviceProvider.GetService<LoginPage>();
+            if (loginPage != null)
+            {
+                Application.Current.MainPage = new NavigationPage(loginPage);
+            }
+        }
     }
 }

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="proyectoFin.MVVM.View.MyOrdersPage"
+             Title="Mis Pedidos"
+             BackgroundColor="#FFE7EA">
+    <ContentPage.Resources>
+        <Style TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="10"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*"
+          Padding="20">
+        <Label Text="Historial de Pedidos"
+               TextColor="#5C4033"
+               FontSize="32"
+               FontAttributes="Bold"
+               Margin="0,0,0,20"/>
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Orders}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border>
+                        <Grid RowDefinitions="Auto,Auto,Auto"
+                              ColumnDefinitions="*,Auto"
+                              RowSpacing="5">
+                            <Label Text="{Binding RecetaNombre}"
+                                   TextColor="#5C4033"
+                                   FontSize="18"
+                                   FontAttributes="Bold"/>
+                            <Label Grid.Column="1"
+                                   Text="{Binding Estado}"
+                                   TextColor="#FF6F61"/>
+                            <Label Grid.Row="1"
+                                   Text="{Binding EmpresaNombre}"
+                                   TextColor="#7A5E48"/>
+                            <Label Grid.Row="2"
+                                   Text="{Binding Fecha}"
+                                   TextColor="#7A5E48"
+                                   FontSize="12"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                          IsVisible="{Binding IsBusy}"
+                          Color="#FF6F61"
+                          Grid.Row="1"
+                          HorizontalOptions="Center"
+                          VerticalOptions="Center"/>
+    </Grid>
+</ContentPage>

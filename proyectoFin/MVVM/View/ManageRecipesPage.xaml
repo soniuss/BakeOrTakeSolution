@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="proyectoFin.MVVM.View.ManageRecipesPage"
+             Title="Gestionar Recetas"
+             BackgroundColor="#FFE7EA">
+    <ContentPage.Resources>
+        <Style TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="10"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto"
+          Padding="20">
+        <Label Text="Mis Recetas"
+               TextColor="#5C4033"
+               FontSize="32"
+               FontAttributes="Bold"
+               Margin="0,0,0,20"/>
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Recipes}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border>
+                        <Grid RowDefinitions="Auto,Auto"
+                              ColumnDefinitions="*,Auto"
+                              RowSpacing="5">
+                            <Label Text="{Binding Nombre}"
+                                   TextColor="#5C4033"
+                                   FontSize="18"
+                                   FontAttributes="Bold"/>
+                            <Label Grid.Column="1"
+                                   Text="{Binding Precio, StringFormat='{0:C}'}"
+                                   TextColor="#FF6F61"/>
+                            <Label Grid.Row="1"
+                                   Text="{Binding Descripcion}"
+                                   TextColor="#7A5E48"
+                                   MaxLines="2"
+                                   LineBreakMode="TailTruncation"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="2"
+                Text="A�adir Nueva Receta"
+                Command="{Binding AddRecipeCommand}"
+                BackgroundColor="#5C4033"
+                TextColor="#FFF5E1"
+                CornerRadius="15"
+                HeightRequest="55"
+                FontSize="18"
+                FontAttributes="Bold"
+                Margin="0,20,0,0"/>
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                          IsVisible="{Binding IsBusy}"
+                          Color="#FF6F61"
+                          Grid.Row="1"
+                          HorizontalOptions="Center"
+                          VerticalOptions="Center"/>
+    </Grid>
+</ContentPage>

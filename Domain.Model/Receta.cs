@@ -14,6 +14,7 @@ namespace Domain.Model
         public string ingredientes { get; set; }
         public string pasos { get; set; }
         public string imagenUrl { get; set; }
+        public DateTime fecha_registro { get; set; }
 
         // Enlace al Cliente creador (lado 'muchos' en la relación 1:N Cliente crea Receta)
         public int id_cliente_creador { get; set; } // Clave Foránea

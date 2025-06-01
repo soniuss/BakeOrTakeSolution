@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
+             x:DataType="viewmodel:EmpresaDashboardViewModel" 
+             x:Class="proyectoFin.MVVM.View.EmpresaDashboardContentPage"
+             Title="Panel de Control Empresa">
+
+    <VerticalStackLayout>
+        <Label Text="Bienvenido al Panel de Control de tu Empresa"
+               FontSize="Large"
+               HorizontalOptions="Center"
+               Margin="20" />
+        <Label Text="Aquí podrás gestionar tus pedidos, recetas y perfil."
+               HorizontalOptions="Center"
+               Margin="0,0,0,20" />
+
+        <Button Text="Ver Mis Pedidos"
+                Command="{Binding ViewOrdersCommand}"
+                HorizontalOptions="Center"
+                Margin="0,10" />
+
+        <Button Text="Gestionar Recetas"
+                Command="{Binding ManageRecipesCommand}"
+                HorizontalOptions="Center"
+                Margin="0,10" />
+    </VerticalStackLayout>
+</ContentPage>

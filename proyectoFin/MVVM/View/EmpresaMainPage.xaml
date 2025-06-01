@@ -1,48 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
-             x:Class="proyectoFin.MVVM.View.EmpresaMainPage"
-             Title="Panel de Empresa"
-             BackgroundColor="#E0F2F7">
-    <ContentPage.BindingContext>
-    </ContentPage.BindingContext>
+<FlyoutPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:local="clr-namespace:proyectoFin.MVVM.View" xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
+            x:DataType="viewmodel:EmpresaMainViewModel" x:Class="proyectoFin.MVVM.View.EmpresaMainPage"
+            Title="BakeOrTake - Empresa">
 
-    <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
-        <Label Text="{Binding WelcomeMessage}"
-               FontSize="28"
-               TextColor="#263238"
-               FontAttributes="Bold"
-               HorizontalTextAlignment="Center"/>
+    <FlyoutPage.Flyout>
+        <local:EmpresaFlyoutMenuPage />
+    </FlyoutPage.Flyout>
 
-        <Label Text="¡Aquí podrás gestionar tus ofertas y pedidos!"
-               FontSize="18"
-               TextColor="#455A64"
-               HorizontalTextAlignment="Center"/>
+    <FlyoutPage.Detail>
+       
+    </FlyoutPage.Detail>
 
-        <Button Text="Mis Ofertas"
-                BackgroundColor="#66BB6A"
-                TextColor="White"
-                FontSize="18"
-                CornerRadius="25"
-                HeightRequest="50"
-                Margin="0,20,0,0"/>
-
-        <Button Text="Gestionar Pedidos"
-                BackgroundColor="#FFD54F"
-                TextColor="#263238"
-                FontSize="18"
-                CornerRadius="25"
-                HeightRequest="50"
-                Margin="0,10,0,0"/>
-
-        <Button Text="Cerrar Sesión"
-                Command="{Binding CerrarSesionCommand}"
-                BackgroundColor="#EF5350"
-                TextColor="White"
-                FontSize="18"
-                CornerRadius="25"
-                HeightRequest="50"
-                Margin="0,30,0,0"/>
-    </VerticalStackLayout>
-</ContentPage>
+</FlyoutPage>

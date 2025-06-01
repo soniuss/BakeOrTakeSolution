@@ -1,144 +1,91 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Domain.Model;
-using proyectoFin.Services;
+﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Storage;
-using System.Collections.ObjectModel;
 using System;
-using proyectoFin.MVVM.View;
-using Refit;
+using System.Threading.Tasks;
+using proyectoFin.Services; // Si usas servicios API aquí
+using proyectoFin.MVVM.View; // Para referenciar las Vistas
 
 namespace proyectoFin.MVVM.ViewModel
 {
     public partial class ClientMainViewModel : ObservableObject
     {
-        private readonly IBakeOrTakeApi _apiService;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IBakeOrTakeApi _apiService; // Si lo necesitas
+        private readonly IServiceProvider _serviceProvider; // Necesario para resolver las páginas
 
-        [ObservableProperty]
-        private ObservableCollection<Receta> _recetas;
-
-        [ObservableProperty]
-        private Receta _selectedReceta;
-
-        [ObservableProperty]
-        private bool _isBusy;
-
-        [ObservableProperty]
-        private string _errorMessage;
+        public IRelayCommand NavigateToProfileCommand { get; }
+        public IRelayCommand NavigateToMyRecipesCommand { get; }
+        public IRelayCommand NavigateToFavoritesCommand { get; }
+        public IRelayCommand LogoutCommand { get; }
 
         public ClientMainViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
-            _apiService = apiService;
+            _apiService = apiService; // Si lo necesitas
             _serviceProvider = serviceProvider;
-            Recetas = new ObservableCollection<Receta>();
 
-            // Llamar al método directamente
-            _ = LoadRecetas();
+            NavigateToProfileCommand = new RelayCommand(async () => await NavigateToPage<ProfilePage>());
+            NavigateToMyRecipesCommand = new RelayCommand(async () => await NavigateToPage<MyRecipesPage>());
+            NavigateToFavoritesCommand = new RelayCommand(async () => await NavigateToPage<FavoritesPage>());
+            LogoutCommand = new RelayCommand(async () => await PerformLogout());
+
+            // Aquí puedes cargar datos iniciales si es necesario para el dashboard principal
+            // Por ejemplo, cargar las primeras recetas si no las gestiona RecipesViewModel
         }
 
-        private async Task LoadRecetas()
+        // Método genérico para navegar a una página desde el Flyout
+        private async Task NavigateToPage<TPage>() where TPage : Page
         {
-            try
+            // Resuelve la página del contenedor de inyección de dependencias
+            var page = _serviceProvider.GetService<TPage>();
+
+            if (page != null)
             {
-                IsBusy = true;
-                ErrorMessage = string.Empty;
-
-                var response = await _apiService.GetRecetasAsync();
-
-                if (response.IsSuccessStatusCode)
+                // Asegúrate de que la página principal es una FlyoutPage
+                if (Application.Current.MainPage is FlyoutPage flyoutPage)
                 {
-                    Recetas.Clear();
-                    foreach (var receta in response.Content)
+                    // El Detail de la FlyoutPage DEBE ser una NavigationPage para PushAsync
+                    if (flyoutPage.Detail is NavigationPage navigationPage)
                     {
-                        Recetas.Add(receta);
-                    }
-                }
-                else
-                {
-                    ErrorMessage = "No se pudieron cargar las recetas desde el servidor.";
-                    Console.WriteLine($"API Error: {response.Error?.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al cargar recetas: {ex.Message}");
-                ErrorMessage = "Ocurrió un error al intentar cargar las recetas.";
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        [RelayCommand]
-        private async Task SelectReceta()
-        {
-            if (SelectedReceta != null)
-            {
-                Console.WriteLine($"Receta seleccionada: {SelectedReceta.nombre} (ID: {SelectedReceta.id_receta})");
-
-                if (Application.Current.MainPage is NavigationPage navPage)
-                {
-                    var recetaDetallePage = _serviceProvider.GetService<RecetaDetallePage>();
-
-                    if (recetaDetallePage != null && recetaDetallePage.BindingContext is RecetaDetalleViewModel viewModel)
-                    {
-                        viewModel.RecetaId = SelectedReceta.id_receta;
-                        await viewModel.LoadRecetaCommand.ExecuteAsync(null);
-                        await navPage.PushAsync(recetaDetallePage);
+                        // PopToRootAsync para limpiar la pila y que no se acumulen páginas
+                        await navigationPage.PopToRootAsync();
+                        await navigationPage.PushAsync(page);
+                        flyoutPage.IsPresented = false; // Cierra el menú hamburguesa después de navegar
                     }
                     else
                     {
-                        Console.WriteLine("Error: No se pudo obtener RecetaDetallePage o su ViewModel.");
-                        await Application.Current.MainPage.DisplayAlert("Error", "No se pudo cargar la página de detalle de la receta.", "OK");
+                        // Si Detail no es NavigationPage (no recomendado para navegación), reemplázala
+                        flyoutPage.Detail = new NavigationPage(page);
+                        flyoutPage.IsPresented = false;
                     }
                 }
-                else
-                {
-                    Console.WriteLine("Error: Application.Current.MainPage no es una NavigationPage.");
-                    await Application.Current.MainPage.DisplayAlert("Error", "La página principal no es una NavigationPage.", "OK");
-                }
-
-                SelectedReceta = null;
-            }
-        }
-
-        [RelayCommand]
-        private async Task CerrarSesion()
-        {
-            try
-            {
-                // Usa directamente la clase SecureStorage
-                await SecureStorage.SetAsync("token", null);
-                await SecureStorage.SetAsync("usuarioId", null);
-                await SecureStorage.SetAsync("rol", null);
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error limpiando SecureStorage: {ex.Message}");
-            }
-
-            var welcomePage = _serviceProvider.GetService<WelcomePage>();
-            if (welcomePage != null)
-            {
-                Application.Current.MainPage = new NavigationPage(welcomePage);
             }
             else
             {
-                Console.WriteLine("Error: No se pudo obtener WelcomePage del ServiceProvider.");
-                Application.Current.MainPage = new NavigationPage(
-                    new WelcomePage(
-                        new WelcomeViewModel(
-                            _serviceProvider.GetService<IBakeOrTakeApi>(),
-                            _serviceProvider
-                        )
-                    )
-                );
+                // Manejar error si la página no se pudo resolver
+                Console.WriteLine($"Error: La página {typeof(TPage).Name} no pudo ser resuelta.");
+                await Application.Current.MainPage.DisplayAlert("Error de navegación", $"No se pudo cargar la página {typeof(TPage).Name}.", "OK");
             }
         }
 
+        private async Task PerformLogout()
+        {
+            // Lógica para cerrar sesión: limpiar preferencias de usuario, tokens, etc.
+            // SecureStorage.Remove("jwt_token"); // Ejemplo si usas SecureStorage
+            // Preferences.Remove("user_id");
+
+            await Application.Current.MainPage.DisplayAlert("Sesión Finalizada", "Has cerrado sesión exitosamente.", "OK");
+
+            // Navegar de vuelta a la página de inicio de sesión o bienvenida
+            // Asegúrate de que LoginPage está registrada como AddTransient en MauiProgram.cs
+            var loginPage = _serviceProvider.GetService<LoginPage>();
+            if (loginPage != null)
+            {
+                Application.Current.MainPage = new NavigationPage(loginPage); // Establece LoginPage como la nueva raíz
+            }
+            else
+            {
+                Console.WriteLine("Error: LoginPage no pudo ser resuelta para cerrar sesión.");
+            }
+        }
     }
 }

@@ -16,6 +16,83 @@ namespace Persistence.ApiRest.Controllers
             _context = context;
         }
 
+        // Endpoint GET para obtener una empresa por ID
+        // GET /api/Empresas/{id}
+        // [Authorize(Roles = "Empresa")] // Opcional: solo empresas autenticadas pueden ver su propio perfil
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Empresa>> GetEmpresa(int id)
+        {
+            var empresa = await _context.Empresas.FindAsync(id);
+
+            if (empresa == null)
+            {
+                return NotFound();
+            }
+
+            // Opcional: Verificar que el ID del token coincide con el ID solicitado si es para perfil propio
+            // var userIdFromToken = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (userIdFromToken != null && int.Parse(userIdFromToken) != id)
+            // {
+            //     return Forbid(); // O Unauthorized
+            // }
+
+            return Ok(empresa);
+        }
+
+        // Endpoint PUT para actualizar una empresa por ID
+        // PUT /api/Empresas/{id}
+        // [Authorize(Roles = "Empresa")] // Opcional: solo empresas autenticadas pueden actualizar su propio perfil
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEmpresa(int id, [FromBody] Empresa updateData)
+        {
+            if (id != updateData.id_empresa)
+            {
+                return BadRequest("El ID de la ruta no coincide con el ID del cuerpo.");
+            }
+
+            var existingEmpresa = await _context.Empresas.FindAsync(id);
+            if (existingEmpresa == null)
+            {
+                return NotFound();
+            }
+            // Opcional: Verificar que el ID del token coincide con el ID solicitado
+            // var userIdFromToken = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (userIdFromToken != null && int.Parse(userIdFromToken) != id)
+            // {
+            //     return Forbid(); // O Unauthorized
+            // }
+
+            // Actualizar solo los campos permitidos
+            existingEmpresa.email = updateData.email;
+            existingEmpresa.nombre_negocio = updateData.nombre_negocio;
+            existingEmpresa.descripcion = updateData.descripcion;
+            existingEmpresa.ubicacion = updateData.ubicacion;
+            // No actualizar password_hash directamente aquí; debe ser un endpoint separado y seguro.
+            // No actualizar fecha_registro
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Empresas.Any(e => e.id_empresa == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar empresa: {ex.Message}");
+                return StatusCode(500, "Error interno del servidor al actualizar la empresa.");
+            }
+
+            return NoContent(); // 204 No Content para actualización exitosa
+        }
         // Endpoint para registrar una nueva empresa
         // POST /api/Empresas/register
         [HttpPost("register")]
