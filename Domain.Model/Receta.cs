@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation; // ¡Asegúrate de que esta línea está!
 
 namespace Domain.Model
 {
@@ -18,6 +19,8 @@ namespace Domain.Model
 
         // Enlace al Cliente creador (lado 'muchos' en la relación 1:N Cliente crea Receta)
         public int id_cliente_creador { get; set; } // Clave Foránea
+
+        [ValidateNever] // ¡Este atributo es clave!
         public Cliente ClienteCreador { get; set; } // Propiedad de navegación al Cliente
 
         // Relaciones con otras entidades (ahora Pedido_Oferta y Favorito)
