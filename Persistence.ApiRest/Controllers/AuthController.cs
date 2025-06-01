@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt; // Para JWT
 using System.Security.Claims; // Para Claims
 using Microsoft.IdentityModel.Tokens; // Para SecurityTokenDescriptor
 using System.Text; // Para Encoding
+using BCrypt.Net;
 using Microsoft.Extensions.Configuration; // Para IConfiguration
 using System; // ¡Necesario para Exception y Console.WriteLine!
 
@@ -31,7 +32,6 @@ namespace Persistence.ApiRest.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // Aunque este método no parece ser el que falla (es el registro), es buena práctica envolverlo en un try-catch también
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -39,46 +39,52 @@ namespace Persistence.ApiRest.Controllers
                     return BadRequest("Email y contraseña son obligatorios.");
                 }
 
-                // Buscar cliente
+                // Buscar cliente por email (SOLO POR EMAIL, AUN NO POR CONTRASEÑA)
                 var cliente = await _context.Clientes
-                                            .FirstOrDefaultAsync(c => c.email == request.Email && c.password_hash == request.Password);
+                                            .FirstOrDefaultAsync(c => c.email == request.Email); // ¡CAMBIO AQUÍ! Eliminar && c.password_hash == request.Password
 
                 if (cliente != null)
                 {
-                    var token = GenerateJwtToken(cliente.id_cliente, "Cliente");
-                    return Ok(new LoginResponse { Token = token, UserType = "Cliente", UserId = cliente.id_cliente });
+                    // VERIFICAR CONTRASEÑA HASHEADA
+                    if (BCrypt.Net.BCrypt.Verify(request.Password, cliente.password_hash)) // ¡CAMBIO AQUÍ!
+                    {
+                        var token = GenerateJwtToken(cliente.id_cliente, "Cliente");
+                        return Ok(new LoginResponse { Token = token, UserType = "Cliente", UserId = cliente.id_cliente });
+                    }
                 }
 
-                // Buscar empresa
+                // Buscar empresa por email (SOLO POR EMAIL, AUN NO POR CONTRASEÑA)
                 var empresa = await _context.Empresas
-                                            .FirstOrDefaultAsync(e => e.email == request.Email && e.password_hash == request.Password);
+                                            .FirstOrDefaultAsync(e => e.email == request.Email); // ¡CAMBIO AQUÍ! Eliminar && e.password_hash == request.Password
 
                 if (empresa != null)
                 {
-                    var token = GenerateJwtToken(empresa.id_empresa, "Empresa");
-                    return Ok(new LoginResponse { Token = token, UserType = "Empresa", UserId = empresa.id_empresa });
+                    // VERIFICAR CONTRASEÑA HASHEADA
+                    if (BCrypt.Net.BCrypt.Verify(request.Password, empresa.password_hash)) // ¡CAMBIO AQUÍ!
+                    {
+                        var token = GenerateJwtToken(empresa.id_empresa, "Empresa");
+                        return Ok(new LoginResponse { Token = token, UserType = "Empresa", UserId = empresa.id_empresa });
+                    }
                 }
 
+                // Si no se encontró ningún usuario con ese email o la contraseña no coincide
                 return Unauthorized("Credenciales inválidas.");
             }
             catch (Exception ex)
             {
-                // Este catch es por si algo falla en la lógica de Login
                 Console.WriteLine($"------------- ERROR EN API REST (LOGIN) -------------");
                 Console.WriteLine($"Mensaje: {ex.Message}");
                 Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}");
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 Console.WriteLine($"-----------------------------------------------------");
 
-                // --- ¡¡TEMPORAL PARA DEPURACIÓN!! ---
-                return StatusCode(500, new // Devuelve un StatusCode 500 con un cuerpo JSON de error
+                return StatusCode(500, new
                 {
                     Message = "Error interno del servidor al iniciar sesión",
                     Details = ex.Message,
                     StackTrace = ex.StackTrace,
                     InnerExceptionMessage = ex.InnerException?.Message
                 });
-                // --- ¡¡FIN TEMPORAL!! ---
             }
         }
 
@@ -110,9 +116,10 @@ namespace Persistence.ApiRest.Controllers
                 var newClient = new Cliente
                 {
                     email = request.Email,
-                    password_hash = request.Password,
+                    password_hash = BCrypt.Net.BCrypt.HashPassword(request.Password), // ¡CAMBIO AQUÍ!
                     nombre = request.Nombre,
-                    ubicacion = request.Ubicacion
+                    ubicacion = request.Ubicacion,
+                    fecha_registro = DateTime.UtcNow // Asegúrate de que esta línea esté, si quieres que se guarde la fecha
                 };
 
                 _context.Clientes.Add(newClient);
@@ -170,10 +177,11 @@ namespace Persistence.ApiRest.Controllers
                 var newEmpresa = new Empresa
                 {
                     email = request.Email,
-                    password_hash = request.Password,
-                    nombre_negocio = request.NombreNegocio, // ¡Mapeo: DTO.NombreNegocio -> Model.nombre_negocio!
+                    password_hash = BCrypt.Net.BCrypt.HashPassword(request.Password), // ¡CAMBIO AQUÍ!
+                    nombre_negocio = request.NombreNegocio,
                     descripcion = request.Descripcion,
-                    ubicacion = request.Ubicacion
+                    ubicacion = request.Ubicacion,
+                    fecha_registro = DateTime.UtcNow // Asegúrate de que esta línea esté
                 };
 
                 _context.Empresas.Add(newEmpresa);
