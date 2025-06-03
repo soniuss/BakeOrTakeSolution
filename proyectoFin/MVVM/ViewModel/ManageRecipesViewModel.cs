@@ -4,54 +4,56 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls; // Para NavigationPage y Application.Current.MainPage
 using proyectoFin.Services; // Para IBakeOrTakeApi
-using Domain.Model; // Para la entidad Receta
+// using Domain.Model; // ¡ELIMINAR ESTA LÍNEA! Ya no se utiliza la entidad de dominio 'Receta' directamente aquí.
 using System; // Para Exception, IServiceProvider
 using proyectoFin.MVVM.View; // Para RecipeFormPage
-using Microsoft.Maui.Storage; // Para SecureStorage
+using Microsoft.Maui.Storage; // ¡CORRECTO! Para SecureStorage
+using Domain.Model.ApiResponses; // Para RecetaResponse
 
 namespace proyectoFin.MVVM.ViewModel
 {
-    // Asegúrate de que esta clase es partial si usas [ObservableProperty] o [RelayCommand]
     public partial class ManageRecipesViewModel : ObservableObject
     {
-        private readonly IBakeOrTakeApi _apiService; // Renombrado de _api a _apiService para consistencia
-        private readonly IServiceProvider _serviceProvider; // Inyectar IServiceProvider
+        private readonly IBakeOrTakeApi _apiService;
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
-        private ObservableCollection<Receta> recipes; // Colección de recetas de la empresa
+        private ObservableCollection<RecetaResponse> recipes; // ¡CORRECTO! Ahora es RecetaResponse
 
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotBusy))] // Notifica cuando IsBusy cambia
-        private bool _isBusy; // Para el indicador de actividad
+        [NotifyPropertyChangedFor(nameof(IsNotBusy))]
+        private bool _isBusy;
 
-        public bool IsNotBusy => !IsBusy; // Propiedad calculada
+        public bool IsNotBusy => !IsBusy;
 
         [ObservableProperty]
-        private string _errorMessage; // Para mostrar mensajes de error a la UI
+        private string _errorMessage;
 
-        // Comandos
         public IAsyncRelayCommand AddRecipeCommand { get; }
-        public IAsyncRelayCommand<Receta> EditRecipeCommand { get; }
-        public IAsyncRelayCommand<Receta> DeleteRecipeCommand { get; } // Comando para eliminar recetas
-        public IAsyncRelayCommand LoadRecipesCommand { get; } // Para cargar las recetas al iniciar
+        // Tipo del comando debe ser RecetaResponse
+        public IAsyncRelayCommand<RecetaResponse> EditRecipeCommand { get; } // ¡CORRECTO!
+        public IAsyncRelayCommand<RecetaResponse> DeleteRecipeCommand { get; } // ¡CORRECTO!
+        public IAsyncRelayCommand LoadRecipesCommand { get; }
 
-        public ManageRecipesViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider) // Recibir IServiceProvider
+        public ManageRecipesViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
-            _serviceProvider = serviceProvider; // Asignar el servicio
-            Recipes = new ObservableCollection<Receta>();
+            _serviceProvider = serviceProvider;
+            Recipes = new ObservableCollection<RecetaResponse>(); // ¡CORRECTO!
 
             AddRecipeCommand = new AsyncRelayCommand(AddRecipe);
-            EditRecipeCommand = new AsyncRelayCommand<Receta>(EditRecipe);
-            DeleteRecipeCommand = new AsyncRelayCommand<Receta>(DeleteRecipe); // Inicializar comando de eliminación
+            // El método debe aceptar RecetaResponse para que coincida con el comando
+            EditRecipeCommand = new AsyncRelayCommand<RecetaResponse>(EditRecipe); // ¡CORRECCIÓN CLAVE AQUÍ!
+            DeleteRecipeCommand = new AsyncRelayCommand<RecetaResponse>(DeleteRecipe); // ¡CORRECTO!
             LoadRecipesCommand = new AsyncRelayCommand(LoadRecipesAsync);
 
-            // Cargar recetas al iniciar el ViewModel
             _ = LoadRecipesAsync();
         }
 
         private async Task AddRecipe()
         {
+            // Lógica para navegación a RecipeFormPage en modo creación (ID 0)
+            // (Esta sección ya está bien si quieres mantener la lógica de FlyoutPage o TabbedPage)
             if (Application.Current.MainPage is FlyoutPage flyoutPage && flyoutPage.Detail is NavigationPage navigationPage)
             {
                 var recipeFormPage = _serviceProvider.GetService<RecipeFormPage>();
@@ -59,11 +61,10 @@ namespace proyectoFin.MVVM.ViewModel
                 {
                     if (recipeFormPage.BindingContext is RecipeFormViewModel formViewModel)
                     {
-                        // Inicializa el ViewModel en modo creación (ID 0)
                         await formViewModel.InitializeAsync(0);
                     }
                     await navigationPage.PushAsync(recipeFormPage);
-                    flyoutPage.IsPresented = false; // Cierra el menú Flyout
+                    flyoutPage.IsPresented = false;
                 }
                 else
                 {
@@ -71,12 +72,38 @@ namespace proyectoFin.MVVM.ViewModel
                     await Application.Current.MainPage.DisplayAlert("Error de navegación", "No se pudo cargar la página para añadir recetas.", "OK");
                 }
             }
+            // Lógica para navegación desde una TabbedPage (si es la actual estructura)
+            else if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
+            {
+                var recipeFormPage = _serviceProvider.GetService<RecipeFormPage>();
+                if (recipeFormPage != null)
+                {
+                    if (recipeFormPage.BindingContext is RecipeFormViewModel formViewModel)
+                    {
+                        await formViewModel.InitializeAsync(0);
+                    }
+                    await currentTabPageNav.PushAsync(recipeFormPage);
+                }
+                else
+                {
+                    Console.WriteLine("Error: RecipeFormPage no pudo ser resuelta.");
+                    await Application.Current.MainPage.DisplayAlert("Error de navegación", "No se pudo cargar la página para añadir recetas.", "OK");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Error: Contexto de navegación inesperado para AddRecipe.");
+                await Application.Current.MainPage.DisplayAlert("Error", "Contexto de navegación no compatible.", "OK");
+            }
         }
 
-        private async Task EditRecipe(Receta recipeToEdit)
+        // ¡CORRECCIÓN CLAVE AQUÍ!: El parámetro debe ser RecetaResponse para coincidir con el comando.
+        private async Task EditRecipe(RecetaResponse recipeToEdit)
         {
             if (recipeToEdit == null) return;
 
+            // Lógica para navegación a RecipeFormPage en modo edición (con ID)
+            // (Esta sección ya está bien si quieres mantener la lógica de FlyoutPage o TabbedPage)
             if (Application.Current.MainPage is FlyoutPage flyoutPage && flyoutPage.Detail is NavigationPage navigationPage)
             {
                 var recipeFormPage = _serviceProvider.GetService<RecipeFormPage>();
@@ -85,10 +112,10 @@ namespace proyectoFin.MVVM.ViewModel
                     if (recipeFormPage.BindingContext is RecipeFormViewModel formViewModel)
                     {
                         // Inicializa el ViewModel en modo edición con el ID de la receta
-                        await formViewModel.InitializeAsync(recipeToEdit.id_receta);
+                        await formViewModel.InitializeAsync(recipeToEdit.IdReceta); // ¡CORRECTO!
                     }
                     await navigationPage.PushAsync(recipeFormPage);
-                    flyoutPage.IsPresented = false; // Cierra el menú Flyout
+                    flyoutPage.IsPresented = false;
                 }
                 else
                 {
@@ -96,13 +123,36 @@ namespace proyectoFin.MVVM.ViewModel
                     await Application.Current.MainPage.DisplayAlert("Error de navegación", "No se pudo cargar la página para editar recetas.", "OK");
                 }
             }
+            // Lógica para navegación desde una TabbedPage (si es la actual estructura)
+            else if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
+            {
+                var recipeFormPage = _serviceProvider.GetService<RecipeFormPage>();
+                if (recipeFormPage != null)
+                {
+                    if (recipeFormPage.BindingContext is RecipeFormViewModel formViewModel)
+                    {
+                        await formViewModel.InitializeAsync(recipeToEdit.IdReceta); // ¡CORRECTO!
+                    }
+                    await currentTabPageNav.PushAsync(recipeFormPage);
+                }
+                else
+                {
+                    Console.WriteLine("Error: RecipeFormPage no pudo ser resuelta para edición.");
+                    await Application.Current.MainPage.DisplayAlert("Error de navegación", "No se pudo cargar la página para editar recetas.", "OK");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Error: Contexto de navegación inesperado para EditRecipe.");
+                await Application.Current.MainPage.DisplayAlert("Error", "Contexto de navegación no compatible.", "OK");
+            }
         }
 
-        private async Task DeleteRecipe(Receta recipeToDelete)
+        private async Task DeleteRecipe(RecetaResponse recipeToDelete) // ¡CORRECTO!
         {
             if (recipeToDelete == null) return;
 
-            bool confirm = await Application.Current.MainPage.DisplayAlert("Confirmar Eliminación", $"¿Estás seguro de que quieres eliminar la receta '{recipeToDelete.nombre}'?", "Sí", "No");
+            bool confirm = await Application.Current.MainPage.DisplayAlert("Confirmar Eliminación", $"¿Estás seguro de que quieres eliminar la receta '{recipeToDelete.Nombre}'?", "Sí", "No"); // ¡CORRECTO!
             if (!confirm) return;
 
             IsBusy = true;
@@ -110,12 +160,11 @@ namespace proyectoFin.MVVM.ViewModel
 
             try
             {
-                // La API REST (RecetasController) se encargará de verificar los permisos
-                var response = await _apiService.DeleteReceta(recipeToDelete.id_receta);
+                var response = await _apiService.DeleteReceta(recipeToDelete.IdReceta); // ¡CORRECTO!
 
                 if (response.IsSuccessStatusCode)
                 {
-                    Recipes.Remove(recipeToDelete); // Eliminar de la colección local
+                    Recipes.Remove(recipeToDelete);
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Receta eliminada exitosamente.", "OK");
                 }
                 else
@@ -149,7 +198,6 @@ namespace proyectoFin.MVVM.ViewModel
 
             try
             {
-                // Obtener el ID de la EMPRESA logueada desde SecureStorage
                 var userIdString = await SecureStorage.GetAsync("user_id");
                 if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idEmpresaActual))
                 {
@@ -158,15 +206,14 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // Llamada al método GetRecetasByCompanyAsync en IBakeOrTakeApi
-                var response = await _apiService.GetRecetasByCompanyAsync(idEmpresaActual);
+                var response = await _apiService.GetRecetasByCompanyAsync(idEmpresaActual); // ¡CORRECTO!
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
                     Recipes.Clear();
-                    foreach (var recipe in response.Content)
+                    foreach (var recipeResponse in response.Content) // ¡CORRECTO!
                     {
-                        Recipes.Add(recipe);
+                        Recipes.Add(recipeResponse);
                     }
                 }
                 else

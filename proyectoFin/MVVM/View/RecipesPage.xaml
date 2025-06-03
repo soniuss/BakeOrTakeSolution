@@ -2,10 +2,10 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
-             xmlns:model="clr-namespace:Domain.Model;assembly=Domain.Model" x:DataType="viewmodel:RecipesViewModel"
+             xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
+             x:DataType="viewmodel:RecipesViewModel"
              x:Class="proyectoFin.MVVM.View.RecipesPage"
              Title="Recetas Disponibles">
-
 
     <VerticalStackLayout>
         <Label Text="¡Descubre deliciosas recetas!"
@@ -14,19 +14,18 @@
                Margin="20" />
 
         <CollectionView ItemsSource="{Binding Recipes}"
-                        SelectionMode="Single"
-                        SelectionChangedCommand="{Binding SelectRecipeCommand}"
-                        SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}">
+                SelectionMode="Single"
+                SelectionChangedCommand="{Binding SelectRecipeCommand}"
+                SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}"
+                VerticalOptions="FillAndExpand">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="model:Receta">
+                <DataTemplate x:DataType="modelResponses:RecetaResponse">
                     <Frame Margin="10" Padding="15" CornerRadius="10" HasShadow="True">
                         <VerticalStackLayout>
-                            <Label Text="{Binding nombre}" FontSize="Medium" FontAttributes="Bold" />
-                            <Label Text="{Binding descripcion}" FontSize="Small" TextColor="Gray" />
-                            <Image Source="{Binding imagenUrl}"
-                                   Aspect="AspectFill"
-                                   HeightRequest="150"
-                                   Margin="0,10,0,0" />
+                            <Label Text="{Binding Nombre}"
+                           FontSize="Medium"
+                           FontAttributes="Bold"
+                           TextColor="#5C4033" />
                         </VerticalStackLayout>
                     </Frame>
                 </DataTemplate>

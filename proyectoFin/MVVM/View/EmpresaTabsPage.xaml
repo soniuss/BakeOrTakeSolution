@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TabbedPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:local="clr-namespace:proyectoFin.MVVM.View"
+            x:Class="proyectoFin.MVVM.View.EmpresaTabsPage"
+            Title="BakeOrTake - Empresa"
+            SelectedTabColor="#5C4033"
+            UnselectedTabColor="#7A5E48"
+            BarBackgroundColor="#FDF1EB"
+            BarTextColor="#5C4033">
+    
+</TabbedPage>

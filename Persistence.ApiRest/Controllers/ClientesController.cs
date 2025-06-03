@@ -2,6 +2,8 @@
 using Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Persistence.ApiRest.Controllers
 {
@@ -61,6 +63,37 @@ namespace Persistence.ApiRest.Controllers
         public async Task<ActionResult<IEnumerable<Cliente>>> GetClientes()
         {
             return Ok(await _context.Clientes.ToListAsync());
+        }
+
+        // GET /api/Clientes/{id}
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Cliente")] // Solo un cliente autenticado puede ver su propio perfil
+        public async Task<ActionResult<Cliente>> GetCliente(int id)
+        {
+            // Obtener el ID del cliente del token JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int idClienteActual))
+            {
+                return Unauthorized("No se pudo identificar al cliente actual.");
+            }
+
+            // Verificar que el ID solicitado coincide con el ID del token
+            if (idClienteActual != id)
+            {
+                return Forbid("No tienes permiso para ver el perfil de otro cliente.");
+            }
+
+            var cliente = await _context.Clientes.FindAsync(id);
+
+            if (cliente == null)
+            {
+                return NotFound();
+            }
+
+            // Opcional: Si Cliente tuviera propiedades de navegación cíclicas,
+            // necesitaríamos un ClienteResponse DTO aquí para evitar errores de serialización.
+            // Por ahora, asumimos que Cliente se puede serializar directamente.
+            return Ok(cliente);
         }
     }
 }

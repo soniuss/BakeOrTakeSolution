@@ -54,12 +54,12 @@ namespace proyectoFin.MVVM.ViewModel
                     // Reemplazamos la MainPage de la aplicacion para evitar volver al login con el boton atras
                     if (loginResult.UserType == "Cliente")
                     {
-                        var clientMainPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<ClientMainPage>();
+                        var clientMainPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<ClientTabsPage>();
                         Application.Current.MainPage = new NavigationPage(clientMainPage);
                     }
                     else if (loginResult.UserType == "Empresa")
                     {
-                        var empresaMainPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<EmpresaMainPage>();
+                        var empresaMainPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<EmpresaTabsPage>();
                         Application.Current.MainPage = new NavigationPage(empresaMainPage); // Necesitas crear esta pagina
                     }
                     else

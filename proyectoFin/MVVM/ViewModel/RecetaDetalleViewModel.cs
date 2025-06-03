@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Domain.Model;
+using Domain.Model.ApiResponses; // ¡NUEVO! Para RecetaResponse
 using proyectoFin.Services;
 using Refit;
 using System.Threading.Tasks;
 using System; // Para Exception
+using Microsoft.Maui.Controls; // Para Application.Current.MainPage.DisplayAlert
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -12,8 +13,9 @@ namespace proyectoFin.MVVM.ViewModel
     {
         private readonly IBakeOrTakeApi _apiService;
 
+        // ¡CORRECCIÓN CLAVE AQUÍ! Cambiar el tipo de la propiedad a RecetaResponse
         [ObservableProperty]
-        private Receta _receta;
+        private RecetaResponse _receta;
 
         [ObservableProperty]
         private int _recetaId;
@@ -27,20 +29,16 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private string _errorMessage;
 
-        // Propiedad de comando público para cargar la receta
         public IAsyncRelayCommand LoadRecetaCommand { get; }
-
-        // Comando para hacer una oferta (sin implementar aún)
         public IAsyncRelayCommand MakeOfferCommand { get; }
 
         public RecetaDetalleViewModel(IBakeOrTakeApi apiService)
         {
             _apiService = apiService;
-            LoadRecetaCommand = new AsyncRelayCommand(LoadReceta); // Inicializa el comando
-            MakeOfferCommand = new AsyncRelayCommand(MakeOffer); // Inicializa el comando
+            LoadRecetaCommand = new AsyncRelayCommand(LoadReceta);
+            MakeOfferCommand = new AsyncRelayCommand(MakeOffer);
         }
 
-        // Método privado que es ejecutado por LoadRecetaCommand
         private async Task LoadReceta()
         {
             if (IsBusy || RecetaId == 0) return;
@@ -50,11 +48,12 @@ namespace proyectoFin.MVVM.ViewModel
 
             try
             {
+                // `GetRecetaByIdAsync` ya devuelve `ApiResponse<RecetaResponse>`
                 var response = await _apiService.GetRecetaByIdAsync(RecetaId);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
-                    Receta = response.Content;
+                    Receta = response.Content; // ¡Ahora los tipos coinciden!
                 }
                 else
                 {
@@ -79,7 +78,6 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // Método para hacer una oferta (aún sin implementar lógica)
         private async Task MakeOffer()
         {
             // Lógica para crear una oferta

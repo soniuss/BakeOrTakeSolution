@@ -17,9 +17,12 @@ namespace proyectoFin.MVVM.ViewModel
         public IRelayCommand NavigateToMyRecipesCommand { get; }
         public IRelayCommand NavigateToFavoritesCommand { get; }
         public IRelayCommand LogoutCommand { get; }
+        public IRelayCommand ToggleFlyoutCommand { get; } // Añadir esta línea
 
         public ClientMainViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
+
+            ToggleFlyoutCommand = new RelayCommand(ToggleFlyout); // Inicializar el comando
             _apiService = apiService; // Si lo necesitas
             _serviceProvider = serviceProvider;
 
@@ -30,6 +33,13 @@ namespace proyectoFin.MVVM.ViewModel
 
             // Aquí puedes cargar datos iniciales si es necesario para el dashboard principal
             // Por ejemplo, cargar las primeras recetas si no las gestiona RecipesViewModel
+        }
+        private void ToggleFlyout() // Método que abre/cierra el Flyout
+        {
+            if (Application.Current.MainPage is FlyoutPage flyoutPage)
+            {
+                flyoutPage.IsPresented = !flyoutPage.IsPresented;
+            }
         }
 
         // Método genérico para navegar a una página desde el Flyout

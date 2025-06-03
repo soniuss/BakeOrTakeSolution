@@ -3,74 +3,140 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using Domain.Model; // ¡IMPORTANTE! Para tu clase Receta
-using proyectoFin.Services; // Para tu API (si tienes un endpoint para favoritos)
-using System.Linq;
+using proyectoFin.Services;
+using Domain.Model.ApiResponses; // Para RecetaResponse
+using Microsoft.Maui.Storage; // Para SecureStorage
+using System;
+using Refit; // Para ApiException
 
 namespace proyectoFin.MVVM.ViewModel
 {
     public partial class FavoritesViewModel : ObservableObject
     {
         [ObservableProperty]
-        private ObservableCollection<Receta> favoriteRecipes; // ¡Ahora es de tipo Receta!
+        private ObservableCollection<RecetaResponse> favoriteRecipes;
 
-        public IRelayCommand LoadFavoriteRecipesCommand { get; }
-        public IRelayCommand<Receta> SelectFavoriteRecipeCommand { get; } // ¡Ahora espera una Receta!
+        [ObservableProperty]
+        private bool _isBusy;
 
-        private readonly IBakeOrTakeApi _apiService; // Si necesitas un endpoint para favoritos
+        [ObservableProperty]
+        private string _errorMessage;
 
-        public FavoritesViewModel(IBakeOrTakeApi apiService) // Asegúrate de inyectar el servicio API
+        public bool IsNotBusy => !IsBusy;
+
+        // Nuevo: Propiedad para controlar la visibilidad del mensaje de "no favoritos"
+        [ObservableProperty]
+        private bool _showNoFavoritesMessage;
+
+
+        public IAsyncRelayCommand LoadFavoriteRecipesCommand { get; }
+        public IAsyncRelayCommand<RecetaResponse> SelectFavoriteRecipeCommand { get; }
+
+        private readonly IBakeOrTakeApi _apiService;
+
+        public FavoritesViewModel(IBakeOrTakeApi apiService)
         {
             _apiService = apiService;
-            FavoriteRecipes = new ObservableCollection<Receta>();
+            FavoriteRecipes = new ObservableCollection<RecetaResponse>();
+            FavoriteRecipes.CollectionChanged += (s, e) => ShowNoFavoritesMessage = FavoriteRecipes.Count == 0; // Actualizar mensaje al cambiar la colección
 
             LoadFavoriteRecipesCommand = new AsyncRelayCommand(LoadFavoriteRecipesAsync);
-            SelectFavoriteRecipeCommand = new RelayCommand<Receta>(OnFavoriteRecipeSelected);
+            SelectFavoriteRecipeCommand = new AsyncRelayCommand<RecetaResponse>(OnFavoriteRecipeSelected);
 
             _ = LoadFavoriteRecipesAsync();
         }
 
         private async Task LoadFavoriteRecipesAsync()
         {
-            // Lógica para cargar las recetas favoritas del usuario
-            // Asume que tu API tiene un endpoint para obtener los favoritos de un cliente.
-            // Esto podría requerir un nuevo método en IBakeOrTakeApi, por ejemplo:
-            // Task<ApiResponse<List<Favorito>>> GetFavoritosByClienteAsync(int idCliente);
-            // Si ese es el caso, tendrías que mapear los Favoritos a Recetas.
+            if (IsBusy) return;
 
-            // Ejemplo asumiendo un endpoint que devuelve directamente las Recetas favoritas:
-            // try
-            // {
-            //     var response = await _apiService.GetFavoriteRecipesForClientAsync(id_cliente_actual);
-            //     if (response.IsSuccessStatusCode && response.Content != null)
-            //     {
-            //         FavoriteRecipes.Clear();
-            //         foreach (var receta in response.Content)
-            //         {
-            //             FavoriteRecipes.Add(receta);
-            //         }
-            //     }
-            // }
-            // catch (Exception ex)
-            // {
-            //     await Application.Current.MainPage.DisplayAlert("Error", $"No se pudieron cargar las recetas favoritas: {ex.Message}", "OK");
-            // }
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+            ShowNoFavoritesMessage = false; // Ocultar mensaje al iniciar carga
 
-            // Datos de prueba (directamente Recetas):
-            if (FavoriteRecipes.Count == 0)
+            // ¡NUEVA LÓGICA PARA ESPERAR EL TOKEN!
+            string token = await SecureStorage.GetAsync("jwt_token");
+            int retryCount = 0;
+            const int maxRetries = 3;
+            const int retryDelayMs = 500;
+
+            if (string.IsNullOrEmpty(token))
             {
-                FavoriteRecipes.Add(new Receta { nombre = "Receta tarta de chocolate", descripcion = "Tarta de chocolate", id_receta = 201, id_cliente_creador = 5 });
-                FavoriteRecipes.Add(new Receta { nombre = "Smoothie Energético", descripcion = "Batido de frutas y verduras", id_receta = 202, id_cliente_creador = 6 });
+                while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
+                {
+                    Console.WriteLine($"DEBUG: Token no encontrado aún en FavoritesViewModel. Reintentando... (Intento {retryCount + 1})");
+                    await Task.Delay(retryDelayMs);
+                    token = await SecureStorage.GetAsync("jwt_token");
+                    retryCount++;
+                }
+            }
+
+            if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
+            {
+                ErrorMessage = "No se pudo obtener el token de autenticación para cargar favoritos. Por favor, intente iniciar sesión de nuevo.";
+                await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
+                IsBusy = false;
+                ShowNoFavoritesMessage = true; // Mostrar mensaje si no se pudo cargar
+                return;
+            }
+            // --- FIN LÓGICA DE ESPERA ---
+
+            try
+            {
+                var userIdString = await SecureStorage.GetAsync("user_id");
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idClienteActual))
+                {
+                    ErrorMessage = "No se pudo obtener el ID del usuario logueado para cargar favoritos.";
+                    IsBusy = false;
+                    ShowNoFavoritesMessage = true;
+                    return;
+                }
+
+                // Llamada a la API para obtener los favoritos reales
+                var response = await _apiService.GetFavoritosByClientAsync(idClienteActual);
+
+                if (response.IsSuccessStatusCode && response.Content != null)
+                {
+                    FavoriteRecipes.Clear();
+                    foreach (var recetaResponse in response.Content)
+                    {
+                        FavoriteRecipes.Add(recetaResponse);
+                    }
+                    ShowNoFavoritesMessage = FavoriteRecipes.Count == 0; // Actualizar después de cargar
+                }
+                else
+                {
+                    var errorContent = response.Error?.Content;
+                    ErrorMessage = $"No se pudieron cargar las recetas favoritas. Código: {response.StatusCode}. Detalles: {errorContent}";
+                    await Application.Current.MainPage.DisplayAlert("Error de Carga", ErrorMessage, "OK");
+                    ShowNoFavoritesMessage = true;
+                }
+            }
+            catch (Refit.ApiException ex)
+            {
+                ErrorMessage = $"Error de conexión o API: {(int)ex.StatusCode} - {ex.Message}. Detalles: {ex.Content}";
+                await Application.Current.MainPage.DisplayAlert("Error de Conexión", ErrorMessage, "OK");
+                ShowNoFavoritesMessage = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Ocurrió un error inesperado al cargar las recetas favoritas: {ex.Message}";
+                await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
+                ShowNoFavoritesMessage = true;
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
-        private void OnFavoriteRecipeSelected(Receta selectedReceta) // Recibe una Receta
+        private async Task OnFavoriteRecipeSelected(RecetaResponse selectedReceta)
         {
             if (selectedReceta != null)
             {
-                Console.WriteLine($"Receta favorita seleccionada: {selectedReceta.nombre}");
-                Application.Current.MainPage.DisplayAlert("Receta Favorita Seleccionada", $"Has seleccionado tu favorita: {selectedReceta.nombre}", "OK");
-                // Navegar a los detalles de esta receta
+                Console.WriteLine($"Receta favorita seleccionada: {selectedReceta.Nombre}");
+                await Application.Current.MainPage.DisplayAlert("Receta Favorita Seleccionada", $"Has seleccionado tu favorita: {selectedReceta.Nombre}", "OK");
+                // Implementar navegación a RecetaDetallePage
             }
         }
     }

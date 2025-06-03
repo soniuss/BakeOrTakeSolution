@@ -2,9 +2,27 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
-             x:DataType="viewmodel:ProfileViewModel" x:Class="proyectoFin.MVVM.View.ProfilePage"
-             Title="Mi Perfil">
+             xmlns:converters="clr-namespace:proyectoFin.Converters"
+             x:DataType="viewmodel:ProfileViewModel"
+             x:Class="proyectoFin.MVVM.View.ProfilePage"
+             Title="Mi Perfil"
+             BackgroundColor="#FFE7EA">
 
+    <ContentPage.Resources>
+        <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#5C4033"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF8FAB"/>
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="HeightRequest" Value="50"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
+    </ContentPage.Resources>
 
     <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="CenterAndExpand">
         <Label Text="Página de Perfil"
@@ -17,12 +35,33 @@
 
         <Label Text="{Binding UserEmail}"
                FontSize="Small"
-               TextColor="Gray"
+               TextColor="#7A5E48"
+               HorizontalOptions="Center" />
+
+        <Label Text="{Binding UserUbicacion}"
+               FontSize="Small"
+               TextColor="#7A5E48"
                HorizontalOptions="Center" />
 
         <Button Text="Editar Perfil"
                 Command="{Binding EditProfileCommand}"
                 HorizontalOptions="Center" />
+
+        <Button Text="Cerrar Sesión"
+                Command="{Binding LogoutCommand}"
+                HorizontalOptions="Center"
+                BackgroundColor="#FF6F61"
+                TextColor="#FFF5E1" />
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           Color="#FF6F61"
+                           HorizontalOptions="Center" />
+
+        <Label Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               HorizontalOptions="Center"
+               IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}" />
 
     </VerticalStackLayout>
 </ContentPage>

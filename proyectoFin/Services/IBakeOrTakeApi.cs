@@ -1,54 +1,70 @@
-﻿using Domain.Model;
-using Domain.Model.ApiRequests;
+﻿using Domain.Model; // Necesario para Receta (en los cuerpos de POST/PUT) y otras entidades
+using Domain.Model.ApiRequests; // ¡IMPORTANTE! Para RecetaResponse
+using Domain.Model.ApiResponses;
 using Refit;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace proyectoFin.Services
 {
     public interface IBakeOrTakeApi
     {
-        [Get("/api/Recetas")]
-        Task<ApiResponse<List<Receta>>> GetRecetasAsync();
-
+        // Métodos de autenticación (estos no cambian)
         [Post("/api/Auth/register/cliente")]
-        Task<Refit.ApiResponse<Domain.Model.Cliente>> RegisterClienteAsync([Body] ClienteRegistrationRequest request);
+        Task<ApiResponse<Domain.Model.Cliente>> RegisterClienteAsync([Body] ClienteRegistrationRequest request);
 
         [Post("/api/Auth/register/empresa")]
-        Task<Refit.ApiResponse<Domain.Model.Empresa>> RegisterEmpresaAsync([Body] EmpresaRegistrationRequest request);
+        Task<ApiResponse<Domain.Model.Empresa>> RegisterEmpresaAsync([Body] EmpresaRegistrationRequest request);
 
         [Post("/api/Auth/login")]
         Task<ApiResponse<LoginResponse>> LoginAsync([Body] LoginRequest request);
 
+        // --- Metodos para Clientes ----
+        [Get("/api/Clientes/{id}")]
+        Task<ApiResponse<Cliente>> GetClienteByIdAsync(int id);
+        [Get("/api/Favoritos/ByClient/{id_cliente}")]
+        Task<ApiResponse<List<RecetaResponse>>> GetFavoritosByClientAsync(int id_cliente);
         // --- Métodos para Recetas ---
+
+        // Obtener todas las recetas
+        [Get("/api/Recetas")]
+        Task<ApiResponse<List<RecetaResponse>>> GetRecetasAsync(); // ¡CAMBIO AQUÍ!
+
+        // Obtener una receta por ID
         [Get("/api/Recetas/{id}")]
-        Task<ApiResponse<Receta>> GetRecetaByIdAsync(int id);
+        Task<ApiResponse<RecetaResponse>> GetRecetaByIdAsync(int id); // ¡CAMBIO AQUÍ!
 
+        // Crear una nueva receta (envía Receta, recibe RecetaResponse)
         [Post("/api/Recetas")]
-        Task<ApiResponse<Receta>> CreateRecetaAsync([Body] Receta newReceta);
+        Task<ApiResponse<RecetaResponse>> CreateRecetaAsync([Body] Receta newReceta); // ¡CAMBIO AQUÍ! (Retorno)
 
+        // Actualizar una receta existente (envía Receta, recibe RecetaResponse)
         [Put("/api/Recetas/{id}")]
-        Task<ApiResponse<Receta>> UpdateRecetaAsync(int id, [Body] Receta updatedReceta);
+        Task<ApiResponse<RecetaResponse>> UpdateRecetaAsync(int id, [Body] Receta updatedReceta); // ¡CAMBIO AQUÍ! (Retorno)
 
+        // Obtener recetas creadas por un cliente específico
         [Get("/api/Recetas/ByCreator/{id_cliente_creador}")]
-        Task<ApiResponse<List<Receta>>> GetRecetasByCreatorAsync(int id_cliente_creador);
+        Task<ApiResponse<List<RecetaResponse>>> GetRecetasByCreatorAsync(int id_cliente_creador); // ¡CAMBIO AQUÍ!
 
+        // Eliminar una receta (no devuelve contenido específico, por eso object)
         [Delete("/api/Recetas/{id}")]
         Task<ApiResponse<object>> DeleteReceta(int id);
 
+        // Obtener recetas gestionadas/creadas por una empresa específica
         [Get("/api/Recetas/ByCompany/{id_empresa}")]
-        Task<ApiResponse<List<Receta>>> GetRecetasByCompanyAsync(int id_empresa);
+        Task<ApiResponse<List<RecetaResponse>>> GetRecetasByCompanyAsync(int id_empresa); // ¡CAMBIO AQUÍ!
 
         // --- Métodos para Empresa (Perfil) ---
-        // NUEVO: Obtener perfil de empresa por ID
+        // Obtener perfil de empresa por ID (si devuelve la entidad completa Empresa, está bien)
         [Get("/api/Empresas/{id}")]
         Task<ApiResponse<Empresa>> GetEmpresaByIdAsync(int id);
 
-        // NUEVO: Actualizar perfil de empresa por ID
+        // Actualizar perfil de empresa por ID (si recibe y devuelve la entidad completa Empresa, está bien)
         [Put("/api/Empresas/{id}")]
         Task<ApiResponse<Empresa>> UpdateEmpresaAsync(int id, [Body] Empresa updateData);
 
         // --- Métodos para Pedidos/Ofertas ---
-        // NUEVO: Obtener pedidos realizados por un cliente
+        // Obtener pedidos realizados por un cliente (si devuelve la entidad completa PedidoOferta, está bien)
         [Get("/api/PedidosOfertas/ByClient/{id_cliente}")]
         Task<ApiResponse<List<PedidoOferta>>> GetClientOrdersAsync(int id_cliente);
     }

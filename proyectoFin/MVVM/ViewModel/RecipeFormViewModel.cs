@@ -1,18 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Domain.Model;
-using Domain.Model.ApiRequests;
+using Domain.Model; // Necesario para la entidad Receta que se ENVÍA a la API
+using Domain.Model.ApiResponses; // Necesario para RecetaResponse que se RECIBE de la API
 using proyectoFin.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using Refit;
 using System;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Para IDictionary
+using System.Collections.Generic; // Aunque no directamente usado por estas líneas, si lo necesita tu InitializeAsync
 
 namespace proyectoFin.MVVM.ViewModel
 {
-    public partial class RecipeFormViewModel : ObservableObject // Ya no implementa IQueryAttributable
+    public partial class RecipeFormViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
 
@@ -52,13 +52,10 @@ namespace proyectoFin.MVVM.ViewModel
         public RecipeFormViewModel(IBakeOrTakeApi apiService)
         {
             _apiService = apiService;
-
             SaveRecipeCommand = new AsyncRelayCommand(SaveRecipe);
             LoadRecipeCommand = new AsyncRelayCommand(LoadRecipe);
         }
 
-        // Método para inicializar el ViewModel con un ID si es necesario (para edición)
-        // Este método será llamado manualmente desde el OnAppearing de RecipeFormPage.xaml.cs
         public async Task InitializeAsync(int recetaId = 0)
         {
             RecetaId = recetaId;
@@ -68,7 +65,6 @@ namespace proyectoFin.MVVM.ViewModel
             }
             else
             {
-                // Limpiar campos para una nueva receta
                 Nombre = string.Empty;
                 Descripcion = string.Empty;
                 Ingredientes = string.Empty;
@@ -76,7 +72,6 @@ namespace proyectoFin.MVVM.ViewModel
                 ImagenUrl = string.Empty;
             }
         }
-
 
         private async Task LoadRecipe()
         {
@@ -91,12 +86,13 @@ namespace proyectoFin.MVVM.ViewModel
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
-                    var receta = response.Content;
-                    Nombre = receta.nombre;
-                    Descripcion = receta.descripcion;
-                    Ingredientes = receta.ingredientes;
-                    Pasos = receta.pasos;
-                    ImagenUrl = receta.imagenUrl;
+                    var recetaResponse = response.Content;
+                    // ¡CORRECCIÓN CLAVE AQUÍ! Usar PascalCase para las propiedades de RecetaResponse
+                    Nombre = recetaResponse.Nombre;
+                    Descripcion = recetaResponse.Descripcion;
+                    Ingredientes = recetaResponse.Ingredientes;
+                    Pasos = recetaResponse.Pasos;
+                    ImagenUrl = recetaResponse.ImagenUrl;
                 }
                 else
                 {
@@ -146,9 +142,11 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
+                // Aquí 'recetaToSave' sigue siendo del tipo de dominio 'Receta'
+                // porque es lo que tu API espera en el cuerpo de la petición POST/PUT.
                 var recetaToSave = new Receta
                 {
-                    nombre = Nombre,
+                    nombre = Nombre,        // Propiedades en camelCase/snake_case del modelo de dominio
                     descripcion = Descripcion,
                     ingredientes = Ingredientes,
                     pasos = Pasos,
@@ -156,7 +154,8 @@ namespace proyectoFin.MVVM.ViewModel
                     id_cliente_creador = idClienteCreador
                 };
 
-                ApiResponse<Receta> response;
+                // ¡CORRECCIÓN CLAVE AQUÍ! La variable 'response' debe ser ApiResponse<RecetaResponse>
+                ApiResponse<RecetaResponse> response;
 
                 if (IsNewRecipe)
                 {
@@ -164,7 +163,7 @@ namespace proyectoFin.MVVM.ViewModel
                 }
                 else
                 {
-                    recetaToSave.id_receta = RecetaId;
+                    recetaToSave.id_receta = RecetaId; // Asigna el ID a la entidad de dominio
                     response = await _apiService.UpdateRecetaAsync(RecetaId, recetaToSave);
                 }
 
@@ -172,10 +171,19 @@ namespace proyectoFin.MVVM.ViewModel
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", IsNewRecipe ? "Receta creada exitosamente." : "Receta actualizada exitosamente.", "OK");
 
-                    
-                    if (Application.Current.MainPage is FlyoutPage flyoutPage && flyoutPage.Detail is NavigationPage navigationPage)
+                    // Lógica de navegación de regreso a la página anterior (Mis Recetas)
+                    if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
                     {
-                        await navigationPage.PopAsync(); // Vuelve a la página anterior (Mis Recetas)
+                        await currentTabPageNav.PopAsync(); // Vuelve a la página anterior
+                    }
+                    // Eliminar la lógica FlyoutPage si ya no se usa (la he dejado como comentario)
+                    else if (Application.Current.MainPage is FlyoutPage flyoutPage && flyoutPage.Detail is NavigationPage navigationPage)
+                    {
+                        await navigationPage.PopAsync();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Advertencia: Contexto de navegación inesperado para volver. Simplemente cerrando.");
                     }
                 }
                 else

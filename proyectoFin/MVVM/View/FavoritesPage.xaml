@@ -2,26 +2,79 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
-             xmlns:model="clr-namespace:Domain.Model;assembly=Domain.Model"
-             x:DataType="viewmodel:FavoritesViewModel" x:Class="proyectoFin.MVVM.View.FavoritesPage"
-             Title="Mis Favoritos">
+             xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
+             xmlns:converters="clr-namespace:proyectoFin.Converters"
+             x:DataType="viewmodel:FavoritesViewModel"
+             x:Class="proyectoFin.MVVM.View.FavoritesPage"
+             Title="Mis Favoritos"
+             BackgroundColor="#FFE7EA">
 
-    <VerticalStackLayout Spacing="20" Padding="20">
+    <ContentPage.Resources>
+        <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+        <Style TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="10"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto"
+          Padding="20">
         <Label Text="Mis Recetas Favoritas"
-               FontSize="Title"
-               HorizontalOptions="Center" />
+               FontSize="32"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               TextColor="#5C4033"
+               Margin="0,0,0,20" />
 
-        <CollectionView ItemsSource="{Binding FavoriteRecipes}"
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding FavoriteRecipes}"
                         SelectionMode="Single"
-                        SelectionChangedCommand="{Binding SelectFavoriteRecipeCommand}">
+                        SelectionChangedCommand="{Binding SelectFavoriteRecipeCommand}"
+                        SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="model:Receta">
+                <DataTemplate x:DataType="modelResponses:RecetaResponse">
                     <Frame Margin="10" Padding="15" CornerRadius="10" HasShadow="True">
-                        <Label Text="{Binding nombre}" FontSize="Medium" FontAttributes="Bold" />
-                        <Label Text="{Binding descripcion}" FontSize="Small" TextColor="Gray" />
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Nombre}" FontSize="Medium" FontAttributes="Bold" TextColor="#5C4033" />
+                            <Label Text="{Binding Descripcion}" FontSize="Small" TextColor="#7A5E48" />
+                            <Label Text="{Binding ClienteCreadorNombre, StringFormat='Creador: {0}'}" FontSize="Small" TextColor="#7A5E48" />
+                            <Image Source="{Binding ImagenUrl}"
+                                   Aspect="AspectFill"
+                                   HeightRequest="100"
+                                   Margin="0,10,0,0" />
+                        </VerticalStackLayout>
                     </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-    </VerticalStackLayout>
+
+        <!-- Mensaje de "No hay favoritos" -->
+        <Label Grid.Row="1"
+               Text="Aún no tienes recetas favoritas. ¡Explora y añade algunas!"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               TextColor="#7A5E48"
+               FontSize="Medium"
+               IsVisible="{Binding ShowNoFavoritesMessage}" />
+
+        <ActivityIndicator Grid.Row="2"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           Color="#FF6F61"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+
+        <Label Grid.Row="3"
+               Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               HorizontalOptions="Center"
+               IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}" />
+    </Grid>
 </ContentPage>

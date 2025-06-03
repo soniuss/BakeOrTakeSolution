@@ -70,10 +70,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="MVVM\View\ClientFlyoutMenuPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="MVVM\View\ClientMainPage.xaml">
+	  <MauiXaml Update="MVVM\View\ClientTabsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="MVVM\View\CompanyProfilePage.xaml">
@@ -82,10 +79,7 @@
 	  <MauiXaml Update="MVVM\View\EmpresaDashboardContentPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MVVM\View\EmpresaFlyoutMenuPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="MVVM\View\EmpresaMainPage.xaml">
+	  <MauiXaml Update="MVVM\View\EmpresaTabsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="MVVM\View\FavoritesPage.xaml">

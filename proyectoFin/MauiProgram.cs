@@ -33,8 +33,6 @@ namespace proyectoFin
             // cada vez que se soliciten, lo cual es común para ViewModels asociados a páginas.
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<RegisterViewModel>();
-            builder.Services.AddTransient<ClientMainViewModel>();
-            builder.Services.AddTransient<EmpresaMainViewModel>();
             builder.Services.AddTransient<RecetaDetalleViewModel>();
             builder.Services.AddTransient<WelcomeViewModel>();
             builder.Services.AddTransient<ProfileViewModel>();
@@ -44,7 +42,7 @@ namespace proyectoFin
             builder.Services.AddTransient<EmpresaDashboardViewModel>();
             builder.Services.AddTransient<ManageRecipesViewModel>(); // Asegúrate de que este nombre de clase coincide con el archivo ManageRecipesViewModel.cs
             builder.Services.AddTransient<EmpresaProfileViewModel>(); // El ViewModel para el perfil de la empresa
-            builder.Services.AddTransient<RecipeFormPage>(); 
+           
 
 
             // --- Registro de Páginas ---
@@ -52,8 +50,6 @@ namespace proyectoFin
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<RegisterPage>();
             builder.Services.AddTransient<WelcomePage>();
-            builder.Services.AddTransient<ClientMainPage>();
-            builder.Services.AddTransient<EmpresaMainPage>();
             builder.Services.AddTransient<RecetaDetallePage>();
             builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<RecipesPage>();
@@ -63,7 +59,8 @@ namespace proyectoFin
             builder.Services.AddTransient<ManageRecipesPage>(); // Para la página de gestión de recetas de empresa
             builder.Services.AddTransient<CompanyProfilePage>(); // La página de perfil de empresa
             builder.Services.AddTransient<RecipeFormPage>();
-
+            builder.Services.AddTransient<ClientTabsPage>();
+            builder.Services.AddTransient<EmpresaTabsPage>();
 
             return builder.Build();
         }

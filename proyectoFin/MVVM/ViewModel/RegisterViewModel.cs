@@ -120,7 +120,7 @@ namespace proyectoFin.MVVM.ViewModel
                         // Navegación a ClientMainPage usando el _serviceProvider inyectado
                         if (Application.Current.MainPage is NavigationPage navigationPage)
                         {
-                            var clientMainPage = _serviceProvider.GetService<ClientMainPage>();
+                            var clientMainPage = _serviceProvider.GetService<ClientTabsPage>();
                             if (clientMainPage != null)
                             {
                                 await navigationPage.PushAsync(clientMainPage);
@@ -135,7 +135,7 @@ namespace proyectoFin.MVVM.ViewModel
                         else
                         {
                             // Fallback si MainPage no es una NavigationPage, reemplaza la página principal
-                            var clientMainPage = _serviceProvider.GetService<ClientMainPage>();
+                            var clientMainPage = _serviceProvider.GetService<ClientTabsPage>();
                             if (clientMainPage != null)
                             {
                                 Application.Current.MainPage = clientMainPage;
@@ -175,7 +175,7 @@ namespace proyectoFin.MVVM.ViewModel
                         // Navegación a ClientMainPage (o EmpresaMainPage si tuvieras una específica)
                         if (Application.Current.MainPage is NavigationPage navigationPage)
                         {
-                            var empresaMainPage = _serviceProvider.GetService<EmpresaMainPage>(); // O EmpresaMainPage
+                            var empresaMainPage = _serviceProvider.GetService<EmpresaTabsPage>(); // O EmpresaMainPage
                             if (empresaMainPage != null)
                             {
                                 await navigationPage.PushAsync(empresaMainPage);
@@ -189,7 +189,7 @@ namespace proyectoFin.MVVM.ViewModel
                         else
                         {
                             // Fallback si MainPage no es una NavigationPage
-                            var empresaMainPage = _serviceProvider.GetService<EmpresaMainPage>(); // O EmpresaMainPage
+                            var empresaMainPage = _serviceProvider.GetService<EmpresaTabsPage>(); // O EmpresaMainPage
                             if (empresaMainPage != null)
                             {
                                 Application.Current.MainPage = empresaMainPage;
