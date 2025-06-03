@@ -8,7 +8,7 @@ using Microsoft.Maui.Storage;
 using Refit;
 using System;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Aunque no directamente usado por estas líneas, si lo necesita tu InitializeAsync
+using System.Collections.Generic;
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -87,7 +87,6 @@ namespace proyectoFin.MVVM.ViewModel
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
                     var recetaResponse = response.Content;
-                    // ¡CORRECCIÓN CLAVE AQUÍ! Usar PascalCase para las propiedades de RecetaResponse
                     Nombre = recetaResponse.Nombre;
                     Descripcion = recetaResponse.Descripcion;
                     Ingredientes = recetaResponse.Ingredientes;
@@ -142,11 +141,9 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // Aquí 'recetaToSave' sigue siendo del tipo de dominio 'Receta'
-                // porque es lo que tu API espera en el cuerpo de la petición POST/PUT.
                 var recetaToSave = new Receta
                 {
-                    nombre = Nombre,        // Propiedades en camelCase/snake_case del modelo de dominio
+                    nombre = Nombre,
                     descripcion = Descripcion,
                     ingredientes = Ingredientes,
                     pasos = Pasos,
@@ -154,7 +151,6 @@ namespace proyectoFin.MVVM.ViewModel
                     id_cliente_creador = idClienteCreador
                 };
 
-                // ¡CORRECCIÓN CLAVE AQUÍ! La variable 'response' debe ser ApiResponse<RecetaResponse>
                 ApiResponse<RecetaResponse> response;
 
                 if (IsNewRecipe)
@@ -163,7 +159,7 @@ namespace proyectoFin.MVVM.ViewModel
                 }
                 else
                 {
-                    recetaToSave.id_receta = RecetaId; // Asigna el ID a la entidad de dominio
+                    recetaToSave.id_receta = RecetaId;
                     response = await _apiService.UpdateRecetaAsync(RecetaId, recetaToSave);
                 }
 
@@ -171,19 +167,23 @@ namespace proyectoFin.MVVM.ViewModel
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", IsNewRecipe ? "Receta creada exitosamente." : "Receta actualizada exitosamente.", "OK");
 
-                    // Lógica de navegación de regreso a la página anterior (Mis Recetas)
+                    // ¡CORRECCIÓN CLAVE AQUÍ! Simplificar la navegación de regreso
+                    // Intentar PopAsync en la NavigationPage actual
                     if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
                     {
-                        await currentTabPageNav.PopAsync(); // Vuelve a la página anterior
+                        Console.WriteLine("DEBUG: Navegando de regreso desde TabbedPage context.");
+                        await currentTabPageNav.PopAsync();
                     }
-                    // Eliminar la lógica FlyoutPage si ya no se usa (la he dejado como comentario)
-                    else if (Application.Current.MainPage is FlyoutPage flyoutPage && flyoutPage.Detail is NavigationPage navigationPage)
+                    else if (Application.Current.MainPage is NavigationPage directNavPage) // Si no es una TabbedPage, pero es una NavigationPage directa
                     {
-                        await navigationPage.PopAsync();
+                        Console.WriteLine("DEBUG: Navegando de regreso desde NavigationPage directa.");
+                        await directNavPage.PopAsync();
                     }
                     else
                     {
-                        Console.WriteLine("Advertencia: Contexto de navegación inesperado para volver. Simplemente cerrando.");
+                        // Fallback si el contexto de navegación es inesperado (ej. no es NavigationPage)
+                        Console.WriteLine("ADVERTENCIA: Contexto de navegación inesperado para PopAsync. No se pudo volver.");
+                        // Podrías intentar ir a la raíz o simplemente no hacer nada si no hay pila.
                     }
                 }
                 else

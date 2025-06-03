@@ -1,27 +1,26 @@
 using proyectoFin.MVVM.ViewModel;
-using Microsoft.Extensions.DependencyInjection; // Solo si lo usas para resolver servicios aquí
+using CommunityToolkit.Mvvm.Input; // Para ExecuteAsync
 
 namespace proyectoFin.MVVM.View
 {
     public partial class CompanyProfilePage : ContentPage
     {
-        // Almacenar una referencia al ViewModel para el OnAppearing
         private readonly EmpresaProfileViewModel _viewModel;
 
         public CompanyProfilePage(EmpresaProfileViewModel viewModel)
         {
             InitializeComponent();
-            _viewModel = viewModel; // Asigna el ViewModel inyectado
+            _viewModel = viewModel;
             BindingContext = _viewModel;
         }
 
-        // OnAppearing es el lugar ideal para cargar los datos del perfil
-        // cada vez que la página se hace visible.
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            // Ejecuta el comando para cargar el perfil de la empresa
-            await _viewModel.LoadProfileCommand.ExecuteAsync(null);
+            if (_viewModel.LoadProfileCommand.CanExecute(null))
+            {
+                await _viewModel.LoadProfileCommand.ExecuteAsync(null);
+            }
         }
     }
 }

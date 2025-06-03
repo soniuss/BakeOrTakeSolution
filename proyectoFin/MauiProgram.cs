@@ -25,12 +25,16 @@ namespace proyectoFin
             var baseApiUrl = "https://bakeortakesolution-production.up.railway.app/"; 
 
             builder.Services.AddSingleton(new HttpClient { BaseAddress = new Uri(baseApiUrl) });
+            builder.Services.AddTransient<AuthHeaderHandler>();
+
             builder.Services.AddRefitClient<IBakeOrTakeApi>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseApiUrl));
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseApiUrl))
+                .AddHttpMessageHandler<AuthHeaderHandler>();
 
             // --- Registro de ViewModels ---
             // Se registran como Transient para que se cree una nueva instancia
             // cada vez que se soliciten, lo cual es común para ViewModels asociados a páginas.
+
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<RegisterViewModel>();
             builder.Services.AddTransient<RecetaDetalleViewModel>();
@@ -39,10 +43,10 @@ namespace proyectoFin
             builder.Services.AddTransient<RecipesViewModel>();
             builder.Services.AddTransient<MyRecipesViewModel>();
             builder.Services.AddTransient<FavoritesViewModel>();
-            builder.Services.AddTransient<EmpresaDashboardViewModel>();
-            builder.Services.AddTransient<ManageRecipesViewModel>(); // Asegúrate de que este nombre de clase coincide con el archivo ManageRecipesViewModel.cs
-            builder.Services.AddTransient<EmpresaProfileViewModel>(); // El ViewModel para el perfil de la empresa
-           
+            builder.Services.AddTransient<ManageRecipesViewModel>();
+            builder.Services.AddTransient<EmpresaProfileViewModel>();
+            builder.Services.AddTransient<RecipeFormViewModel>();
+
 
 
             // --- Registro de Páginas ---
@@ -55,10 +59,12 @@ namespace proyectoFin
             builder.Services.AddTransient<RecipesPage>();
             builder.Services.AddTransient<MyRecipesPage>();
             builder.Services.AddTransient<FavoritesPage>();
-            builder.Services.AddTransient<MyOrdersPage>(); // Para la página de pedidos (clientes y/o empresas)
-            builder.Services.AddTransient<ManageRecipesPage>(); // Para la página de gestión de recetas de empresa
-            builder.Services.AddTransient<CompanyProfilePage>(); // La página de perfil de empresa
+            builder.Services.AddTransient<MyOrdersPage>();
+            builder.Services.AddTransient<ManageRecipesPage>();
+            builder.Services.AddTransient<CompanyProfilePage>();
             builder.Services.AddTransient<RecipeFormPage>();
+
+            // Registrar las nuevas TabbedPages
             builder.Services.AddTransient<ClientTabsPage>();
             builder.Services.AddTransient<EmpresaTabsPage>();
 

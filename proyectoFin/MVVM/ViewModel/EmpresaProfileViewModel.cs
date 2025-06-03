@@ -1,63 +1,58 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
-using Microsoft.Maui.Controls; // Para DisplayAlert, Application.Current.MainPage
-using proyectoFin.Services; // Para IBakeOrTakeApi
+using Microsoft.Maui.Controls;
 using Domain.Model; // Para la entidad Empresa
-using System.Net.Http; // Para posibles errores de HTTP
-using System; // Para Exception, SecureStorage
+using proyectoFin.Services; // Para IBakeOrTakeApi
+using Microsoft.Maui.Storage; // Para SecureStorage
+using System;
+using Refit;
+using proyectoFin.MVVM.View; // Para ApiException
 
 namespace proyectoFin.MVVM.ViewModel
 {
-    // Es importante que sea partial para que CommunityToolkit.Mvvm genere el código
     public partial class EmpresaProfileViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
-
-        // Propiedades para mostrar y editar los datos de la empresa
-        // Usamos [ObservableProperty] para que se generen automáticamente las propiedades con NotifyPropertyChanged
-        [ObservableProperty]
-        private int _idEmpresa; // Para almacenar el ID de la empresa logueada
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
-        private string _email;
+        private string _email; // Email de la empresa
 
         [ObservableProperty]
-        private string _nombreNegocio;
+        private string _nombreNegocio; // Nombre del negocio
 
         [ObservableProperty]
-        private string _descripcion;
+        private string _descripcion; // Descripción del negocio
 
         [ObservableProperty]
-        private string _ubicacion;
+        private string _ubicacion; // Ubicación de la empresa
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
-        private bool _isBusy; // Para indicar si una operación está en curso (ej. cargando/guardando)
+        private bool _isBusy;
 
         public bool IsNotBusy => !IsBusy;
 
         [ObservableProperty]
-        private string _errorMessage; // Para mostrar mensajes de error a la UI
+        private string _errorMessage;
 
-        // Comandos
         public IAsyncRelayCommand SaveChangesCommand { get; }
-        public IAsyncRelayCommand LoadProfileCommand { get; } // Comando para cargar el perfil
+        public IAsyncRelayCommand LoadProfileCommand { get; }
+        public IRelayCommand LogoutCommand { get; } // Añadir si quieres el logout aquí
 
-        public EmpresaProfileViewModel(IBakeOrTakeApi apiService)
+        public EmpresaProfileViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
+            _serviceProvider = serviceProvider;
 
-            // Inicializar comandos
             SaveChangesCommand = new AsyncRelayCommand(SaveChanges);
             LoadProfileCommand = new AsyncRelayCommand(LoadEmpresaProfile);
+            LogoutCommand = new RelayCommand(async () => await PerformLogout()); // Inicializar el comando de logout
 
-            // Cargar el perfil cuando el ViewModel se inicializa
-            // Esto es útil si la página se carga de nuevo o si el ViewModel es Transient
-            _ = LoadEmpresaProfile();
+            _ = LoadEmpresaProfile(); // Cargar perfil al inicializar
         }
 
-        // Método para cargar los datos del perfil de la empresa desde la API
         private async Task LoadEmpresaProfile()
         {
             if (IsBusy) return;
@@ -67,29 +62,48 @@ namespace proyectoFin.MVVM.ViewModel
 
             try
             {
-                // **Paso crucial: Obtener el ID de la empresa logueada**
-                // Asume que el ID de la empresa logueada está guardado en SecureStorage.
-                // Podrías tener un servicio de autenticación/sesión inyectado para esto también.
                 var userIdString = await SecureStorage.GetAsync("user_id");
-                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int empresaId))
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idEmpresaActual))
                 {
                     ErrorMessage = "No se pudo obtener el ID de la empresa logueada.";
                     return;
                 }
-                IdEmpresa = empresaId; // Asigna el ID a la propiedad observable
 
-                // **Llamada a la API para obtener los datos de la empresa**
-                // Necesitarás añadir un endpoint en tu IBakeOrTakeApi para esto.
-                // Ejemplo: [Get("/api/Empresas/{id}")] Task<ApiResponse<Empresa>> GetEmpresaByIdAsync(int id);
-                var response = await _apiService.GetEmpresaByIdAsync(IdEmpresa); // Asume este método en tu API
+                // --- Lógica de espera/reintento para el token ---
+                string token = await SecureStorage.GetAsync("jwt_token");
+                int retryCount = 0;
+                const int maxRetries = 3;
+                const int retryDelayMs = 500;
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
+                    {
+                        Console.WriteLine($"DEBUG: Token no encontrado aún en EmpresaProfileViewModel. Reintentando... (Intento {retryCount + 1})");
+                        await Task.Delay(retryDelayMs);
+                        token = await SecureStorage.GetAsync("jwt_token");
+                        retryCount++;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
+                {
+                    ErrorMessage = "No se pudo obtener el token de autenticación para cargar el perfil. Por favor, intente iniciar sesión de nuevo.";
+                    await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
+                    IsBusy = false;
+                    return;
+                }
+                // --- FIN LÓGICA DE ESPERA ---
+
+                var response = await _apiService.GetEmpresaByIdAsync(idEmpresaActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
-                    // Asignar los datos al modelo observable
-                    Email = response.Content.email;
-                    NombreNegocio = response.Content.nombre_negocio;
-                    Descripcion = response.Content.descripcion;
-                    Ubicacion = response.Content.ubicacion;
+                    var empresa = response.Content;
+                    Email = empresa.email;
+                    NombreNegocio = empresa.nombre_negocio;
+                    Descripcion = empresa.descripcion;
+                    Ubicacion = empresa.ubicacion;
                 }
                 else
                 {
@@ -114,15 +128,13 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // Método para guardar los cambios en el perfil de la empresa
         private async Task SaveChanges()
         {
-            if (IsBusy) return; // Evitar múltiples clics
+            if (IsBusy) return;
 
             IsBusy = true;
             ErrorMessage = string.Empty;
 
-            // Validaciones básicas
             if (string.IsNullOrWhiteSpace(NombreNegocio) || string.IsNullOrWhiteSpace(Ubicacion) || string.IsNullOrWhiteSpace(Email))
             {
                 ErrorMessage = "El nombre del negocio, la ubicación y el email son obligatorios.";
@@ -132,23 +144,24 @@ namespace proyectoFin.MVVM.ViewModel
 
             try
             {
-                // Crear un DTO para la actualización. Podrías necesitar un EmpresaUpdateRequest si solo actualizas ciertos campos.
-                // Por simplicidad, aquí usaremos la entidad Empresa directamente o un DTO genérico.
-                // Si la API espera un objeto completo, crea una instancia de Empresa y asigna los valores actuales.
-                var updateRequest = new Empresa
+                var userIdString = await SecureStorage.GetAsync("user_id");
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idEmpresaActual))
                 {
-                    id_empresa = IdEmpresa, // Asegúrate de enviar el ID para identificar qué empresa actualizar
+                    ErrorMessage = "No se pudo obtener el ID de la empresa logueada.";
+                    IsBusy = false;
+                    return;
+                }
+
+                var updateRequest = new Empresa // Asumimos que la API acepta la entidad Empresa para la actualización
+                {
+                    id_empresa = idEmpresaActual,
                     email = Email,
                     nombre_negocio = NombreNegocio,
                     descripcion = Descripcion,
                     ubicacion = Ubicacion,
-                    // No incluir password_hash ni fecha_registro a menos que realmente se modifiquen
                 };
 
-                // **Llamada a la API para actualizar los datos de la empresa**
-                // Necesitarás añadir un endpoint en tu IBakeOrTakeApi para esto.
-                // Ejemplo: [Put("/api/Empresas/{id}")] Task<ApiResponse<Empresa>> UpdateEmpresaAsync(int id, [Body] Empresa updateData);
-                var response = await _apiService.UpdateEmpresaAsync(IdEmpresa, updateRequest); // Asume este método
+                var response = await _apiService.UpdateEmpresaAsync(idEmpresaActual, updateRequest);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -176,6 +189,26 @@ namespace proyectoFin.MVVM.ViewModel
             finally
             {
                 IsBusy = false;
+            }
+        }
+
+        // Método para cerrar sesión (si se mueve aquí)
+        private async Task PerformLogout()
+        {
+            SecureStorage.Remove("jwt_token");
+            SecureStorage.Remove("user_type");
+            SecureStorage.Remove("user_id");
+
+            await Application.Current.MainPage.DisplayAlert("Sesión Finalizada", "Has cerrado sesión exitosamente.", "OK");
+
+            var loginPage = _serviceProvider.GetService<LoginPage>();
+            if (loginPage != null)
+            {
+                Application.Current.MainPage = new NavigationPage(loginPage);
+            }
+            else
+            {
+                Console.WriteLine("Error: LoginPage no pudo ser resuelta para cerrar sesión.");
             }
         }
     }

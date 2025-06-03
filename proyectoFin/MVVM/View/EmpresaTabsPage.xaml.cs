@@ -1,45 +1,39 @@
-// En proyectoFin/MVVM/View/EmpresaTabsPage.xaml.cs
 using Microsoft.Maui.Controls;
-using System; // Necesario para IServiceProvider
-using Microsoft.Extensions.DependencyInjection; // Necesario para GetRequiredService
+using System;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace proyectoFin.MVVM.View
 {
     public partial class EmpresaTabsPage : TabbedPage
     {
-        private readonly IServiceProvider _serviceProvider; // Inyecta IServiceProvider
+        private readonly IServiceProvider _serviceProvider;
 
-        public EmpresaTabsPage(IServiceProvider serviceProvider) // Recibe IServiceProvider
+        public EmpresaTabsPage(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-            _serviceProvider = serviceProvider; // Almacena el serviceProvider
+            _serviceProvider = serviceProvider;
 
-            // Pestaña 1: Dashboard de Empresa
-            Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<EmpresaDashboardContentPage>())
-            {
-                Title = "Dashboard",
-                IconImageSource = "dashboard_icon.png" // Asegúrate de tener este icono
-            });
+            // Añadir las páginas como hijos de la TabbedPage programáticamente para DI
 
-            // Pestaña 2: Mis Pedidos
+            // Pestaña 1: Mis Pedidos (anteriormente Dashboard era la primera)
             Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<MyOrdersPage>())
             {
                 Title = "Pedidos",
-                IconImageSource = "orders_icon.png" // Asegúrate de tener este icono
+                IconImageSource = "pedido.png" // Asegúrate de tener este icono
             });
 
-            // Pestaña 3: Gestionar Recetas
+            // Pestaña 2: Gestionar Recetas
             Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<ManageRecipesPage>())
             {
                 Title = "Gestionar Recetas",
-                IconImageSource = "manage_recipes_icon.png" // Asegúrate de tener este icono
+                IconImageSource = "recetas.png" // Asegúrate de tener este icono
             });
 
-            // Pestaña 4: Perfil de Empresa
-            Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<CompanyProfilePage>())
+            // Pestaña 3: Perfil de Empresa (ahora usando CompanyProfilePage)
+            Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<CompanyProfilePage>()) // ¡CAMBIO AQUÍ!
             {
                 Title = "Mi Perfil",
-                IconImageSource = "company_profile_icon.png" // Asegúrate de tener este icono
+                IconImageSource = "perfil.png" // Asegúrate de tener este icono
             });
         }
     }
