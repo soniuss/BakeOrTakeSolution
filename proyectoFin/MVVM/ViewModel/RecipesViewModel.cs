@@ -2,12 +2,13 @@
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using Microsoft.Maui.Controls; // Para tu API
+using Microsoft.Maui.Controls;
 using proyectoFin.Services;
-using System.Linq; // Para el .ToList()
-using Refit; // Para ApiException
+using System.Linq;
+using Refit;
 using System;
-using Domain.Model.ApiResponses; // ¡CORRECTO! Para RecetaResponse
+using Domain.Model.ApiResponses; // Para RecetaResponse
+using Microsoft.Maui.Storage; // Para SecureStorage
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -16,27 +17,30 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private ObservableCollection<RecetaResponse> recipes;
 
-       
+        // ¡CORRECCIÓN CLAVE AQUÍ! Añadir _isBusy y NotifyPropertyChangedFor
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
         private bool _isBusy;
 
+        // ¡CORRECCIÓN CLAVE AQUÍ! Añadir IsNotBusy
         public bool IsNotBusy => !IsBusy;
 
         [ObservableProperty]
-        private string _errorMessage;
+        private string _errorMessage; // Asegúrate de que esta propiedad también esté si la usas.
+
+
+        public IRelayCommand LoadRecipesCommand { get; }
         public IRelayCommand<RecetaResponse> SelectRecipeCommand { get; }
-        public IRelayCommand LoadRecipesCommand { get; } // Este no cambia, es un comando sin parámetros
 
         private readonly IBakeOrTakeApi _apiService;
 
         public RecipesViewModel(IBakeOrTakeApi apiService)
         {
             _apiService = apiService;
-            Recipes = new ObservableCollection<RecetaResponse>(); // ¡CORRECCIÓN CLAVE AQUÍ! Inicializar con RecetaResponse
+            Recipes = new ObservableCollection<RecetaResponse>();
 
             LoadRecipesCommand = new AsyncRelayCommand(LoadRecipesAsync);
-            SelectRecipeCommand = new RelayCommand<RecetaResponse>(OnRecipeSelected); // ¡CORRECCIÓN CLAVE AQUÍ! Asignar con RecetaResponse
+            SelectRecipeCommand = new AsyncRelayCommand<RecetaResponse>(OnRecipeSelected); // Cambiado a AsyncRelayCommand
 
             _ = LoadRecipesAsync(); // Iniciar la carga al construir el ViewModel
         }
@@ -44,44 +48,51 @@ namespace proyectoFin.MVVM.ViewModel
         private async Task LoadRecipesAsync()
         {
             // Si ya está ocupado, salir para evitar múltiples cargas
-            if (IsBusy) return;
+            if (IsBusy) return; // Ahora IsBusy existe
 
-            IsBusy = true; // Activar indicador de actividad
-            ErrorMessage = string.Empty; // Limpiar mensaje de error
+            IsBusy = true; // Ahora IsBusy existe
+            ErrorMessage = string.Empty; // Ahora ErrorMessage existe
+
+            // ¡CORRECCIÓN CLAVE AQUÍ! Declarar 'response' fuera del try
+            ApiResponse<List<RecetaResponse>> response = null; // Inicializar a null
 
             try
             {
-                var response = await _apiService.GetRecetasAsync();
-                // --- NUEVA LÓGICA PARA ESPERAR EL TOKEN (si la API es protegida) ---
+                // --- LÓGICA PARA ESPERAR EL TOKEN (si la API es protegida) ---
+                // Esta lógica es para cuando la API requiere autenticación para GetRecetasAsync.
+                // Si tu GetRecetasAsync() en la API REST *no* tiene [Authorize], puedes simplificar esto.
+                // Pero si el 401 se debe a una cabecera vacía, esto ayuda.
                 string token = await SecureStorage.GetAsync("jwt_token");
                 int retryCount = 0;
-                const int maxRetries = 3; // Número máximo de reintentos
-                const int retryDelayMs = 500; // Retraso entre reintentos en milisegundos (0.5 segundos)
+                const int maxRetries = 3;
+                const int retryDelayMs = 500;
 
-                // Esperar a que el token esté disponible, con reintentos
-                // Si el endpoint GetRecetasAsync() *no* está protegido, este bucle no es estrictamente necesario,
-                // pero si el 401 se debe a una cabecera vacía, puede ayudar.
-                while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
+                if (string.IsNullOrEmpty(token)) // Solo si el token es nulo al principio
                 {
-                    Console.WriteLine($"DEBUG: Token no encontrado aún. Reintentando en {retryDelayMs}ms... (Intento {retryCount + 1})");
-                    await Task.Delay(retryDelayMs); // Esperar antes de reintentar
-                    token = await SecureStorage.GetAsync("jwt_token"); // Intentar obtener el token de nuevo
-                    retryCount++;
+                    while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
+                    {
+                        Console.WriteLine($"DEBUG: Token no encontrado aún. Reintentando en {retryDelayMs}ms... (Intento {retryCount + 1})");
+                        await Task.Delay(retryDelayMs);
+                        token = await SecureStorage.GetAsync("jwt_token");
+                        retryCount++;
+                    }
                 }
 
                 // Si después de los reintentos el token sigue sin estar disponible,
                 // y si esta API requiere autenticación, no podemos continuar.
                 // (Aunque GetRecetasAsync() no tenga [Authorize], el 401 sugiere un problema de autenticación).
-                if (string.IsNullOrEmpty(token) && response == null) // Solo si no se ha hecho ninguna llamada exitosa
+                if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
                 {
-                    ErrorMessage = "No se pudo obtener el token de autenticación. Por favor, intente iniciar sesión de nuevo si el problema persiste.";
+                    ErrorMessage = "No se pudo obtener el token de autenticación después de varios intentos. Por favor, intente iniciar sesión de nuevo si el problema persiste.";
                     await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
                     IsBusy = false;
-                    return; // Salir si el token no está disponible y la API es protegida
+                    return;
                 }
                 // --- FIN LÓGICA DE ESPERA ---
 
 
+                // Realizar la llamada a la API
+                response = await _apiService.GetRecetasAsync();
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
@@ -115,14 +126,15 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        private void OnRecipeSelected(RecetaResponse selectedReceta) // ¡CORRECCIÓN CLAVE AQUÍ! Parámetro de tipo RecetaResponse
+        private async Task OnRecipeSelected(RecetaResponse selectedReceta) // Parámetro de tipo RecetaResponse
         {
             if (selectedReceta != null)
             {
-                Console.WriteLine($"Receta seleccionada: {selectedReceta.Nombre}"); // ¡CORRECCIÓN CLAVE AQUÍ! Usar .Nombre (PascalCase)
-                Application.Current.MainPage.DisplayAlert("Receta Seleccionada", $"Has seleccionado: {selectedReceta.Nombre}", "OK"); // ¡CORRECCIÓN CLAVE AQUÍ! Usar .Nombre (PascalCase)
-                // Aquí podrías navegar a una página de detalles de la receta, pasando el id_receta
-                // Ejemplo: await Application.Current.MainPage.Navigation.PushAsync(new RecetaDetallePage(selectedReceta.IdReceta));
+                Console.WriteLine($"Receta seleccionada: {selectedReceta.Nombre}");
+                await Application.Current.MainPage.DisplayAlert("Receta Seleccionada", $"Has seleccionado: {selectedReceta.Nombre}", "OK");
+                // Aquí podrías navegar a RecetaDetallePage pasando selectedReceta.IdReceta
+                // Ejemplo: await Application.Current.MainPage.Navigation.PushAsync(_serviceProvider.GetRequiredService<RecetaDetallePage>());
+                // Y luego pasar el ID al ViewModel de RecetaDetallePage
             }
         }
     }

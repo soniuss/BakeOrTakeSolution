@@ -2,11 +2,12 @@
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using Domain.Model; // ¡NUEVO! Para la entidad Cliente
+using Domain.Model; // Para la entidad Cliente
 using proyectoFin.Services; // Para IBakeOrTakeApi
 using Microsoft.Maui.Storage; // Para SecureStorage
-using System;
-using proyectoFin.MVVM.View; // Para Exception, IServiceProvider
+using System; // Para Exception, IServiceProvider
+using Refit;
+using proyectoFin.MVVM.View; // Para ApiException
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -16,13 +17,13 @@ namespace proyectoFin.MVVM.ViewModel
         private readonly IServiceProvider _serviceProvider; // Necesario para navegar al logout
 
         [ObservableProperty]
-        private string userName; // Propiedad para el nombre del cliente
+        private string userName;
 
         [ObservableProperty]
-        private string userEmail; // Propiedad para el email del cliente
+        private string userEmail;
 
         [ObservableProperty]
-        private string userUbicacion; // Nuevo: Propiedad para la ubicación del cliente
+        private string userUbicacion;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -35,7 +36,7 @@ namespace proyectoFin.MVVM.ViewModel
 
         public IRelayCommand EditProfileCommand { get; }
         public IRelayCommand LogoutCommand { get; }
-        public IAsyncRelayCommand LoadUserProfileCommand { get; } // Nuevo comando para cargar el perfil
+        public IAsyncRelayCommand LoadUserProfileCommand { get; }
 
         public ProfileViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
@@ -44,10 +45,9 @@ namespace proyectoFin.MVVM.ViewModel
 
             EditProfileCommand = new AsyncRelayCommand(EditProfileAsync);
             LogoutCommand = new RelayCommand(async () => await PerformLogout());
-            LoadUserProfileCommand = new AsyncRelayCommand(LoadUserProfile); // Inicializar el comando
+            LoadUserProfileCommand = new AsyncRelayCommand(LoadUserProfile);
 
-            // Cargar datos del perfil al inicializar el ViewModel
-            _ = LoadUserProfile();
+            _ = LoadUserProfile(); // Iniciar la carga al construir el ViewModel
         }
 
         private async Task LoadUserProfile()
@@ -59,34 +59,36 @@ namespace proyectoFin.MVVM.ViewModel
 
             try
             {
-                // **Paso crucial: Obtener el ID del cliente logueado desde SecureStorage**
                 var userIdString = await SecureStorage.GetAsync("user_id");
                 if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idClienteActual))
                 {
                     ErrorMessage = "No se pudo obtener el ID del usuario logueado.";
+                    IsBusy = false;
                     return;
                 }
 
-                // --- Lógica de espera/reintento para el token ---
+                // --- LÓGICA DE ESPERA/REINTENTO PARA EL TOKEN ---
                 string token = await SecureStorage.GetAsync("jwt_token");
                 int retryCount = 0;
                 const int maxRetries = 3;
-                const int retryDelayMs = 500;
+                const int retryDelayMs = 500; // Retraso de 0.5 segundos
 
-                if (string.IsNullOrEmpty(token))
+                if (string.IsNullOrEmpty(token)) // Solo si el token es nulo al principio
                 {
                     while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
                     {
                         Console.WriteLine($"DEBUG: Token no encontrado aún en ProfileViewModel. Reintentando... (Intento {retryCount + 1})");
-                        await Task.Delay(retryDelayMs);
-                        token = await SecureStorage.GetAsync("jwt_token");
+                        await Task.Delay(retryDelayMs); // Esperar antes de reintentar
+                        token = await SecureStorage.GetAsync("jwt_token"); // Intentar obtener el token de nuevo
                         retryCount++;
                     }
                 }
 
+                // Si después de los reintentos el token sigue sin estar disponible,
+                // y esta API requiere autenticación, no podemos continuar.
                 if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
                 {
-                    ErrorMessage = "No se pudo obtener el token de autenticación para cargar el perfil. Por favor, intente iniciar sesión de nuevo.";
+                    ErrorMessage = "No se pudo obtener el token de autenticación para cargar el perfil. Por favor, intente iniciar sesión de nuevo si el problema persiste.";
                     await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
                     IsBusy = false;
                     return;
@@ -94,15 +96,14 @@ namespace proyectoFin.MVVM.ViewModel
                 // --- FIN LÓGICA DE ESPERA ---
 
 
-                // Llamada a la API para obtener los datos del cliente
                 var response = await _apiService.GetClienteByIdAsync(idClienteActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
-                    var cliente = response.Content; // El tipo es Domain.Model.Cliente
+                    var cliente = response.Content;
                     UserName = cliente.nombre;
                     UserEmail = cliente.email;
-                    UserUbicacion = cliente.ubicacion; // Asignar ubicación
+                    UserUbicacion = cliente.ubicacion;
                 }
                 else
                 {
@@ -130,7 +131,6 @@ namespace proyectoFin.MVVM.ViewModel
         private async Task EditProfileAsync()
         {
             await Application.Current.MainPage.DisplayAlert("Editar Perfil", "Funcionalidad de edición de perfil en desarrollo.", "OK");
-            // Aquí podrías navegar a una página de edición de perfil, pasando el ID del cliente
         }
 
         private async Task PerformLogout()

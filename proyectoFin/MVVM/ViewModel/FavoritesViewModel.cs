@@ -24,7 +24,6 @@ namespace proyectoFin.MVVM.ViewModel
 
         public bool IsNotBusy => !IsBusy;
 
-        // Nuevo: Propiedad para controlar la visibilidad del mensaje de "no favoritos"
         [ObservableProperty]
         private bool _showNoFavoritesMessage;
 
@@ -38,7 +37,7 @@ namespace proyectoFin.MVVM.ViewModel
         {
             _apiService = apiService;
             FavoriteRecipes = new ObservableCollection<RecetaResponse>();
-            FavoriteRecipes.CollectionChanged += (s, e) => ShowNoFavoritesMessage = FavoriteRecipes.Count == 0; // Actualizar mensaje al cambiar la colección
+            FavoriteRecipes.CollectionChanged += (s, e) => ShowNoFavoritesMessage = FavoriteRecipes.Count == 0;
 
             LoadFavoriteRecipesCommand = new AsyncRelayCommand(LoadFavoriteRecipesAsync);
             SelectFavoriteRecipeCommand = new AsyncRelayCommand<RecetaResponse>(OnFavoriteRecipeSelected);
@@ -52,7 +51,7 @@ namespace proyectoFin.MVVM.ViewModel
 
             IsBusy = true;
             ErrorMessage = string.Empty;
-            ShowNoFavoritesMessage = false; // Ocultar mensaje al iniciar carga
+            ShowNoFavoritesMessage = false;
 
             // ¡NUEVA LÓGICA PARA ESPERAR EL TOKEN!
             string token = await SecureStorage.GetAsync("jwt_token");
@@ -76,7 +75,7 @@ namespace proyectoFin.MVVM.ViewModel
                 ErrorMessage = "No se pudo obtener el token de autenticación para cargar favoritos. Por favor, intente iniciar sesión de nuevo.";
                 await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
                 IsBusy = false;
-                ShowNoFavoritesMessage = true; // Mostrar mensaje si no se pudo cargar
+                ShowNoFavoritesMessage = true;
                 return;
             }
             // --- FIN LÓGICA DE ESPERA ---
@@ -92,8 +91,8 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // Llamada a la API para obtener los favoritos reales
-                var response = await _apiService.GetFavoritosByClientAsync(idClienteActual);
+                // ¡ELIMINAR DATOS DE PRUEBA Y LLAMAR A LA API REAL!
+                var response = await _apiService.GetFavoritosByClientAsync(idClienteActual); // ¡Llamada a la API real!
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
@@ -102,7 +101,7 @@ namespace proyectoFin.MVVM.ViewModel
                     {
                         FavoriteRecipes.Add(recetaResponse);
                     }
-                    ShowNoFavoritesMessage = FavoriteRecipes.Count == 0; // Actualizar después de cargar
+                    ShowNoFavoritesMessage = FavoriteRecipes.Count == 0;
                 }
                 else
                 {
