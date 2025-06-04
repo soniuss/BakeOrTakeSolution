@@ -27,14 +27,7 @@
                     IconImageSource = "pedido.png"
                 });
 
-                // Pestaña 3: Gestionar Recetas
-                Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<ManageRecipesPage>())
-                {
-                    Title = "Gestionar Recetas",
-                    IconImageSource = "recetas.png"
-                });
-
-                // Pestaña 4: Perfil de Empresa
+                // Pestaña 3: Perfil de Empresa
                 Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<CompanyProfilePage>())
                 {
                     Title = "Mi Perfil",

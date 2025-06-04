@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.Extensions.Logging;
+using proyectoFin.Converters;
 using proyectoFin.MVVM.View;
 using proyectoFin.MVVM.ViewModel;
 using proyectoFin.Services;
@@ -43,7 +45,6 @@ namespace proyectoFin
             builder.Services.AddTransient<RecipesViewModel>();
             builder.Services.AddTransient<MyRecipesViewModel>();
             builder.Services.AddTransient<FavoritesViewModel>();
-            builder.Services.AddTransient<ManageRecipesViewModel>();
             builder.Services.AddTransient<EmpresaProfileViewModel>();
             builder.Services.AddTransient<RecipeFormViewModel>();
             builder.Services.AddTransient<MyOrdersViewModel>();
@@ -59,13 +60,16 @@ namespace proyectoFin
             builder.Services.AddTransient<MyRecipesPage>();
             builder.Services.AddTransient<FavoritesPage>();
             builder.Services.AddTransient<MyOrdersPage>();
-            builder.Services.AddTransient<ManageRecipesPage>();
             builder.Services.AddTransient<CompanyProfilePage>();
             builder.Services.AddTransient<RecipeFormPage>();
-
+            
             // Registrar las nuevas TabbedPages
             builder.Services.AddTransient<ClientTabsPage>();
             builder.Services.AddTransient<EmpresaTabsPage>();
+
+            // Registrar Converters
+            builder.Services.AddSingleton<StringToBoolConverter>();
+            builder.Services.AddSingleton<BoolToColorConverter>();
 
             return builder.Build();
         }

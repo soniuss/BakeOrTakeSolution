@@ -5,27 +5,40 @@
              xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
              x:DataType="viewmodel:RecipesViewModel"
              x:Class="proyectoFin.MVVM.View.RecipesPage"
-             Title="Recetas Disponibles">
+             Title="Explorar"
+             BackgroundColor="#FFE7EA">
+    <!-- Color de fondo de la página -->
 
-    <VerticalStackLayout>
+    <VerticalStackLayout BackgroundColor="#FFE7EA">
+        <!-- ¡CORRECCIÓN CLAVE AQUÍ! Asegurar el color de fondo del StackLayout -->
         <Label Text="¡Descubre deliciosas recetas!"
                FontSize="Large"
                HorizontalOptions="Center"
                Margin="20" />
 
         <CollectionView ItemsSource="{Binding Recipes}"
-                SelectionMode="Single"
-                SelectionChangedCommand="{Binding SelectRecipeCommand}"
-                SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}"
-                VerticalOptions="FillAndExpand">
+                        SelectionMode="Single"
+                        SelectionChangedCommand="{Binding SelectRecipeCommand}"
+                        SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}"
+                        VerticalOptions="FillAndExpand">
+            <!-- Esto ya debería manejar el scroll -->
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="modelResponses:RecetaResponse">
                     <Frame Margin="10" Padding="15" CornerRadius="10" HasShadow="True">
                         <VerticalStackLayout>
                             <Label Text="{Binding Nombre}"
-                           FontSize="Medium"
-                           FontAttributes="Bold"
-                           TextColor="#5C4033" />
+                                   FontSize="Medium"
+                                   FontAttributes="Bold"
+                                   TextColor="#5C4033" />
+                            <Label Text="{Binding Descripcion}"
+                                   FontSize="Small"
+                                   TextColor="#7A5E48"
+                                   MaxLines="1"
+                                   LineBreakMode="TailTruncation" />
+                            <Image Source="{Binding ImagenUrl}"
+                                   Aspect="AspectFill"
+                                   HeightRequest="100"
+                                   Margin="0,5,0,0" />
                         </VerticalStackLayout>
                     </Frame>
                 </DataTemplate>

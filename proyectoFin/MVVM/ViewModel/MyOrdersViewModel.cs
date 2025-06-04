@@ -3,22 +3,22 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using proyectoFin.Services; // Para tu API
-using Domain.Model; // Para tu clase PedidoOferta
-using Microsoft.Maui.Storage; // Para SecureStorage
-using System; // Para Exception, Console.WriteLine
-using Refit; // Para ApiException
-using Microsoft.Extensions.DependencyInjection; // Para IServiceProvider
+using proyectoFin.Services;
+using Domain.Model; // Para PedidoOferta (si se usa en la colección)
+using Domain.Model.ApiResponses; // Para PedidoOfertaResponse
+using Microsoft.Maui.Storage;
+using System;
+using Refit;
 
 namespace proyectoFin.MVVM.ViewModel
 {
     public partial class MyOrdersViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
-        private readonly IServiceProvider _serviceProvider; // ¡NUEVO! Para navegación
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
-        private ObservableCollection<PedidoOferta> orders;
+        private ObservableCollection<PedidoOfertaResponse> orders;
 
         [ObservableProperty]
         private bool _isBusy;
@@ -28,13 +28,16 @@ namespace proyectoFin.MVVM.ViewModel
 
         public bool IsNotBusy => !IsBusy;
 
+        [ObservableProperty]
+        private string _userType;
+
         public IAsyncRelayCommand LoadOrdersCommand { get; }
 
-        public MyOrdersViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider) // ¡CAMBIO AQUÍ! Recibe IServiceProvider
+        public MyOrdersViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
-            _serviceProvider = serviceProvider; // Asigna el serviceProvider
-            Orders = new ObservableCollection<PedidoOferta>();
+            _serviceProvider = serviceProvider;
+            Orders = new ObservableCollection<PedidoOfertaResponse>();
 
             LoadOrdersCommand = new AsyncRelayCommand(LoadOrdersAsync);
 
@@ -47,6 +50,8 @@ namespace proyectoFin.MVVM.ViewModel
 
             IsBusy = true;
             ErrorMessage = string.Empty;
+
+            UserType = await SecureStorage.GetAsync("user_type"); // Obtener el tipo de usuario
 
             // Lógica de espera/reintento para el token
             string token = await SecureStorage.GetAsync("jwt_token");
@@ -76,20 +81,40 @@ namespace proyectoFin.MVVM.ViewModel
             try
             {
                 var userIdString = await SecureStorage.GetAsync("user_id");
-                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idClienteActual))
+                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userIdActual))
                 {
                     ErrorMessage = "No se pudo obtener el ID del usuario logueado.";
                     return;
                 }
 
-                var response = await _apiService.GetClientOrdersAsync(idClienteActual);
+                ApiResponse<List<PedidoOfertaResponse>> response;
+
+                if (UserType == "Cliente")
+                {
+                    response = await _apiService.GetClientOrdersAsync(userIdActual);
+                }
+                else if (UserType == "Empresa")
+                {
+                    response = await _apiService.GetCompanyOffersAsync(userIdActual); // ¡CORRECTO! Llama al endpoint de empresa
+                }
+                else
+                {
+                    ErrorMessage = "Tipo de usuario desconocido para cargar pedidos.";
+                    IsBusy = false;
+                    return;
+                }
+
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
                     Orders.Clear();
-                    foreach (var order in response.Content)
+                    foreach (var orderResponse in response.Content)
                     {
-                        Orders.Add(order);
+                        Orders.Add(orderResponse);
+                    }
+                    if (Orders.Count == 0)
+                    {
+                        ErrorMessage = "No hay pedidos/ofertas para mostrar."; // Mensaje si está vacío
                     }
                 }
                 else
