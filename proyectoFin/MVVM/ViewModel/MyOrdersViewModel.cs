@@ -7,55 +7,74 @@ using proyectoFin.Services; // Para tu API
 using Domain.Model; // Para tu clase PedidoOferta
 using Microsoft.Maui.Storage; // Para SecureStorage
 using System; // Para Exception, Console.WriteLine
+using Refit; // Para ApiException
+using Microsoft.Extensions.DependencyInjection; // Para IServiceProvider
 
 namespace proyectoFin.MVVM.ViewModel
 {
     public partial class MyOrdersViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
-
-        // --- Propiedades Observables (para solucionar CS0103 IsBusy) ---
-        [ObservableProperty]
-        private ObservableCollection<PedidoOferta> orders; // La colección de pedidos
+        private readonly IServiceProvider _serviceProvider; // ¡NUEVO! Para navegación
 
         [ObservableProperty]
-        private bool _isBusy; // Propiedad para el indicador de actividad
+        private ObservableCollection<PedidoOferta> orders;
 
         [ObservableProperty]
-        private string _errorMessage; // Propiedad para mensajes de error
+        private bool _isBusy;
 
-        // Propiedad calculada para el estado de "no ocupado"
+        [ObservableProperty]
+        private string _errorMessage;
+
         public bool IsNotBusy => !IsBusy;
 
-
-        // --- Comandos ---
         public IAsyncRelayCommand LoadOrdersCommand { get; }
-        // Si necesitas un comando para seleccionar un pedido, añádelo aquí:
-        // public IRelayCommand<PedidoOferta> SelectOrderCommand { get; }
 
-
-        public MyOrdersViewModel(IBakeOrTakeApi apiService)
+        public MyOrdersViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider) // ¡CAMBIO AQUÍ! Recibe IServiceProvider
         {
             _apiService = apiService;
-            Orders = new ObservableCollection<PedidoOferta>(); // Inicializa la colección
+            _serviceProvider = serviceProvider; // Asigna el serviceProvider
+            Orders = new ObservableCollection<PedidoOferta>();
 
             LoadOrdersCommand = new AsyncRelayCommand(LoadOrdersAsync);
-            // SelectOrderCommand = new RelayCommand<PedidoOferta>(OnOrderSelected); // Si lo añades
 
-            // Inicia la carga de pedidos cuando el ViewModel se crea
             _ = LoadOrdersAsync();
         }
 
         private async Task LoadOrdersAsync()
         {
-            if (IsBusy) return; // Evitar llamadas múltiples
+            if (IsBusy) return;
 
-            IsBusy = true;       // Activa el indicador de actividad
-            ErrorMessage = string.Empty; // Limpia mensajes de error anteriores
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+
+            // Lógica de espera/reintento para el token
+            string token = await SecureStorage.GetAsync("jwt_token");
+            int retryCount = 0;
+            const int maxRetries = 3;
+            const int retryDelayMs = 500;
+
+            if (string.IsNullOrEmpty(token))
+            {
+                while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
+                {
+                    Console.WriteLine($"DEBUG: Token no encontrado aún en MyOrdersViewModel. Reintentando... (Intento {retryCount + 1})");
+                    await Task.Delay(retryDelayMs);
+                    token = await SecureStorage.GetAsync("jwt_token");
+                    retryCount++;
+                }
+            }
+
+            if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
+            {
+                ErrorMessage = "No se pudo obtener el token de autenticación para cargar pedidos. Por favor, intente iniciar sesión de nuevo.";
+                await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
+                IsBusy = false;
+                return;
+            }
 
             try
             {
-                // Obtener el ID del cliente logueado desde SecureStorage
                 var userIdString = await SecureStorage.GetAsync("user_id");
                 if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idClienteActual))
                 {
@@ -63,14 +82,11 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // --- Solución para CS1061: Llamada al nuevo método de API ---
-                // Necesitas definir GetClientOrdersAsync en tu IBakeOrTakeApi
-                // y su implementación en el controlador de la API REST.
                 var response = await _apiService.GetClientOrdersAsync(idClienteActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
-                    Orders.Clear(); // Limpia la colección antes de añadir los nuevos pedidos
+                    Orders.Clear();
                     foreach (var order in response.Content)
                     {
                         Orders.Add(order);
@@ -78,7 +94,6 @@ namespace proyectoFin.MVVM.ViewModel
                 }
                 else
                 {
-                    // Manejo de errores de la API
                     var errorContent = response.Error?.Content;
                     ErrorMessage = $"No se pudieron cargar los pedidos. Código: {response.StatusCode}. Detalles: {errorContent}";
                     await Application.Current.MainPage.DisplayAlert("Error de Carga", ErrorMessage, "OK");
@@ -86,30 +101,18 @@ namespace proyectoFin.MVVM.ViewModel
             }
             catch (Refit.ApiException ex)
             {
-                // Manejo de errores de Refit (problemas de conexión, errores HTTP del servidor)
                 ErrorMessage = $"Error de conexión o API: {(int)ex.StatusCode} - {ex.Message}. Detalles: {ex.Content}";
                 await Application.Current.MainPage.DisplayAlert("Error de Conexión", ErrorMessage, "OK");
             }
             catch (Exception ex)
             {
-                // Otros errores inesperados
                 ErrorMessage = $"Ocurrió un error inesperado al cargar los pedidos: {ex.Message}";
                 await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
             }
             finally
             {
-                IsBusy = false; // Desactiva el indicador de actividad al finalizar
+                IsBusy = false;
             }
         }
-
-        // Si añades un comando para seleccionar un pedido, aquí estaría su lógica:
-        // private void OnOrderSelected(PedidoOferta selectedOrder)
-        // {
-        //     if (selectedOrder != null)
-        //     {
-        //         Console.WriteLine($"Pedido seleccionado: {selectedOrder.id_pedido_oferta}");
-        //         // Aquí podrías navegar a una página de detalles del pedido
-        //     }
-        // }
     }
 }

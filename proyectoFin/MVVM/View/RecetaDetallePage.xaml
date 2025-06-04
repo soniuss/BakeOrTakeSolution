@@ -1,12 +1,184 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
+             xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
+             xmlns:converters="clr-namespace:proyectoFin.Converters"
+             x:DataType="viewmodel:RecetaDetalleViewModel"
              x:Class="proyectoFin.MVVM.View.RecetaDetallePage"
-             Title="RecetaDetallePage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             Title="{Binding Receta.Nombre}"
+             BackgroundColor="#FFE7EA">
+
+    <ContentPage.Resources>
+        <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <!-- ¡NUEVO! Para HasOffers -->
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+        <!-- ¡NUEVO! Para disponibilidad -->
+
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#5C4033"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF8FAB"/>
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="HeightRequest" Value="50"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
+        <Style TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="10"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
+            <Setter Property="Padding" Value="15,0"/>
+        </Style>
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="PlaceholderColor" Value="#7A5E48"/>
+            <Setter Property="HeightRequest" Value="50"/>
+        </Style>
+        <Style TargetType="Editor">
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="PlaceholderColor" Value="#7A5E48"/>
+            <Setter Property="AutoSize" Value="TextChanges"/>
+            <Setter Property="HeightRequest" Value="100"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="20">
+            <!-- Sección de Detalles de la Receta -->
+            <Image Source="{Binding Receta.ImagenUrl}"
+                   Aspect="AspectFill"
+                   HeightRequest="200"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,10"/>
+
+            <Label Text="{Binding Receta.Nombre}"
+                   FontSize="Large"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="#5C4033"/>
+
+            <Label Text="Descripción:" FontAttributes="Bold" TextColor="#7A5E48"/>
+            <Label Text="{Binding Receta.Descripcion}" TextColor="#5C4033"/>
+
+            <Label Text="Ingredientes:" FontAttributes="Bold" TextColor="#7A5E48"/>
+            <Label Text="{Binding Receta.Ingredientes}" TextColor="#5C4033"/>
+
+            <Label Text="Pasos:" FontAttributes="Bold" TextColor="#7A5E48"/>
+            <Label Text="{Binding Receta.Pasos}" TextColor="#5C4033"/>
+
+            <Label Text="Creador:" FontAttributes="Bold" TextColor="#7A5E48"/>
+            <Label Text="{Binding Receta.ClienteCreadorNombre}" TextColor="#5C4033"/>
+            <Label Text="{Binding Receta.ClienteCreadorEmail}" TextColor="#5C4033" FontSize="Small"/>
+
+            <!-- Botón de Editar Receta (visible solo si la receta es del usuario logueado) -->
+            <Button Text="Editar Receta"
+                    Command="{Binding EditRecipeCommand}"
+                    IsVisible="{Binding IsRecipeOwnedByUser}"
+                    BackgroundColor="#5C4033"
+                    TextColor="#FFF5E1"
+                    CornerRadius="15"
+                    HeightRequest="50"
+                    Margin="0,10,0,0"/>
+
+            <BoxView HeightRequest="1" Color="#FF8FAB" Margin="0,20"/>
+            <!-- Separador -->
+
+            <!-- Sección de Ofertas (visible para todos, pero con acciones condicionales) -->
+            <Label Text="Ofertas Disponibles"
+                   FontSize="Medium"
+                   FontAttributes="Bold"
+                   TextColor="#5C4033"
+                   Margin="0,10,0,10"/>
+
+            <Label Text="No hay ofertas disponibles para esta receta."
+                   IsVisible="{Binding HasOffers, Converter={StaticResource InverseBoolConverter}}"
+                   HorizontalOptions="Center"
+                   TextColor="#7A5E48"/>
+
+            <CollectionView ItemsSource="{Binding Offers}"
+                            IsVisible="{Binding HasOffers}"
+                            SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="modelResponses:PedidoOfertaResponse">
+                        <Frame Margin="5" Padding="10" CornerRadius="8" HasShadow="True" BackgroundColor="#FDF1EB">
+                            <VerticalStackLayout Spacing="5">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="{Binding EmpresaNombreNegocio}" FontAttributes="Bold" FontSize="Medium" TextColor="#5C4033"/>
+                                    <Label Grid.Column="1" Text="{Binding Precio, StringFormat='{0:C}'}" FontAttributes="Bold" FontSize="Medium" TextColor="#FF6F61"/>
+                                </Grid>
+                                <Label Text="{Binding DescripcionOferta}" FontSize="Small" TextColor="#7A5E48"/>
+                                <Label Text="{Binding EmpresaUbicacion, StringFormat='Ubicación: {0}'}" FontSize="Small" TextColor="#7A5E48"/>
+                                <Label Text="{Binding Disponibilidad, StringFormat='Disponible: {0}'}" FontSize="Small" TextColor="{Binding Disponibilidad, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#5C4033|Red'}"/>
+
+                                <!-- Botón "Hacer Pedido" (visible solo para clientes y si la oferta está disponible) -->
+                                <Button Text="Hacer Pedido"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=PlaceOrderCommand}"
+                                        CommandParameter="{Binding .}"
+                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=IsClientUser}"
+                                        BackgroundColor="#FF8FAB"
+                                        TextColor="#5C4033"
+                                        CornerRadius="10"
+                                        HeightRequest="40"
+                                        FontSize="Small"
+                                        Padding="10,5"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <BoxView HeightRequest="1" Color="#FF8FAB" Margin="0,20"/>
+            <!-- Separador -->
+
+            <!-- Formulario para HACER UNA OFERTA (visible solo para empresas) -->
+            <VerticalStackLayout IsVisible="{Binding IsCompanyUser}" Spacing="15">
+                <Label Text="Crear Nueva Oferta"
+                       FontSize="Medium"
+                       FontAttributes="Bold"
+                       TextColor="#5C4033"
+                       HorizontalOptions="Center"
+                       Margin="0,10,0,10"/>
+
+                <Border>
+                    <Entry Placeholder="Precio de la oferta" Keyboard="Numeric" Text="{Binding OfferPrice}" />
+                </Border>
+
+                <Border>
+                    <Editor Placeholder="Descripción de tu oferta" Text="{Binding OfferDescription}" />
+                </Border>
+
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="Disponible:" TextColor="#5C4033" VerticalOptions="Center"/>
+                    <Switch IsToggled="{Binding OfferAvailability}" OnColor="#FF8FAB" ThumbColor="#5C4033"/>
+                </HorizontalStackLayout>
+
+                <Button Text="Publicar Oferta"
+                        Command="{Binding MakeOfferCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="#5C4033"
+                        TextColor="#FFF5E1"
+                        CornerRadius="15"
+                        HeightRequest="55"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        Margin="0,10,0,0"/>
+            </VerticalStackLayout>
+
+            <!-- Indicadores de estado y errores -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="#FF6F61" HorizontalOptions="Center" />
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

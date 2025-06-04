@@ -1,40 +1,46 @@
-using Microsoft.Maui.Controls;
-using System;
-using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Maui.Controls;
+    using System;
+    using Microsoft.Extensions.DependencyInjection;
 
-namespace proyectoFin.MVVM.View
-{
-    public partial class EmpresaTabsPage : TabbedPage
+    namespace proyectoFin.MVVM.View
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        public EmpresaTabsPage(IServiceProvider serviceProvider)
+        public partial class EmpresaTabsPage : TabbedPage
         {
-            InitializeComponent();
-            _serviceProvider = serviceProvider;
+            private readonly IServiceProvider _serviceProvider;
 
-            // Añadir las páginas como hijos de la TabbedPage programáticamente para DI
-
-            // Pestaña 1: Mis Pedidos (anteriormente Dashboard era la primera)
-            Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<MyOrdersPage>())
+            public EmpresaTabsPage(IServiceProvider serviceProvider)
             {
-                Title = "Pedidos",
-                IconImageSource = "pedido.png" // Asegúrate de tener este icono
-            });
+                InitializeComponent();
+                _serviceProvider = serviceProvider;
 
-            // Pestaña 2: Gestionar Recetas
-            Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<ManageRecipesPage>())
-            {
-                Title = "Gestionar Recetas",
-                IconImageSource = "recetas.png" // Asegúrate de tener este icono
-            });
+                // Pestaña 1: Explorar Recetas (para empresas)
+                Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<RecipesPage>()) // ¡NUEVO!
+                {
+                    Title = "Explorar",
+                    IconImageSource = "hoja.png" // Reutilizar el icono de explorar
+                });
 
-            // Pestaña 3: Perfil de Empresa (ahora usando CompanyProfilePage)
-            Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<CompanyProfilePage>()) // ¡CAMBIO AQUÍ!
-            {
-                Title = "Mi Perfil",
-                IconImageSource = "perfil.png" // Asegúrate de tener este icono
-            });
+                // Pestaña 2: Mis Pedidos
+                Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<MyOrdersPage>())
+                {
+                    Title = "Pedidos",
+                    IconImageSource = "pedido.png"
+                });
+
+                // Pestaña 3: Gestionar Recetas
+                Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<ManageRecipesPage>())
+                {
+                    Title = "Gestionar Recetas",
+                    IconImageSource = "recetas.png"
+                });
+
+                // Pestaña 4: Perfil de Empresa
+                Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<CompanyProfilePage>())
+                {
+                    Title = "Mi Perfil",
+                    IconImageSource = "perfil.png"
+                });
+            }
         }
     }
-}
+    

@@ -5,17 +5,23 @@ namespace proyectoFin.MVVM.View
 {
     public partial class RecetaDetallePage : ContentPage
     {
-        // Constructor por defecto, o que reciba el ViewModel (si usas DI fuerte aquí)
-        public RecetaDetallePage(RecetaDetalleViewModel viewModel) // Inyecta el ViewModel
+        private readonly RecetaDetalleViewModel _viewModel;
+
+        public RecetaDetallePage(RecetaDetalleViewModel viewModel)
         {
             InitializeComponent();
-            BindingContext = viewModel; // Asigna el ViewModel inyectado al BindingContext
+            _viewModel = viewModel;
+            BindingContext = _viewModel;
         }
 
-        // Si prefieres que el BindingContext se asigne en el XAML, puedes tener un constructor sin parámetros:
-        // public RecetaDetallePage()
-        // {
-        //     InitializeComponent();
-        // }
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            // Esto asegura que el ViewModel carga los datos cuando la página se hace visible
+            if (_viewModel.LoadRecetaCommand.CanExecute(null))
+            {
+                await _viewModel.LoadRecetaCommand.ExecuteAsync(null);
+            }
+        }
     }
 }

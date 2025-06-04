@@ -76,9 +76,6 @@
 	  <MauiXaml Update="MVVM\View\CompanyProfilePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MVVM\View\EmpresaDashboardContentPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="MVVM\View\EmpresaTabsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -116,12 +113,6 @@
 
 	<ItemGroup>
 	  <Folder Include="MVVM\Model\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="MVVM\View\EmpresaDashboardContentPage.xaml.cs">
-	    <DependentUpon>EmpresaDashboardContentPage.xaml</DependentUpon>
-	  </Compile>
 	</ItemGroup>
 
 </Project>

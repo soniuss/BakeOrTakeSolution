@@ -67,5 +67,18 @@ namespace proyectoFin.Services
         // Obtener pedidos realizados por un cliente (si devuelve la entidad completa PedidoOferta, está bien)
         [Get("/api/PedidosOfertas/ByClient/{id_cliente}")]
         Task<ApiResponse<List<PedidoOferta>>> GetClientOrdersAsync(int id_cliente);
+
+        // Obtener ofertas para una receta específica
+        [Get("/api/PedidosOfertas/ByReceta/{id_receta}")]
+        Task<ApiResponse<List<PedidoOfertaResponse>>> GetOffersByRecetaAsync(int id_receta); // ¡NUEVO!
+
+        // Crear una oferta (por una Empresa)
+        [Post("/api/PedidosOfertas/offer/{id_receta}")]
+        Task<ApiResponse<PedidoOfertaResponse>> CreateOfferAsync(int id_receta, [Body] OfertaRequest request); // ¡NUEVO!
+
+        // Realizar un pedido (por un Cliente)
+        [Post("/api/PedidosOfertas/order")]
+        Task<ApiResponse<PedidoOfertaResponse>> PlaceOrderAsync([Body] PedidoRequest request); // ¡NUEVO!
+
     }
 }
