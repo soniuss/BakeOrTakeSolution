@@ -5,7 +5,7 @@ using Microsoft.Maui.Controls;
 using Domain.Model; // Para la entidad Cliente
 using proyectoFin.Services; // Para IBakeOrTakeApi
 using Microsoft.Maui.Storage; // Para SecureStorage
-using System; // Para Exception, IServiceProvider
+using System;
 using Refit;
 using proyectoFin.MVVM.View; // Para ApiException
 
@@ -14,7 +14,7 @@ namespace proyectoFin.MVVM.ViewModel
     public partial class ProfileViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
-        private readonly IServiceProvider _serviceProvider; // Necesario para navegar al logout
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
         private string userName;
@@ -47,7 +47,7 @@ namespace proyectoFin.MVVM.ViewModel
             LogoutCommand = new RelayCommand(async () => await PerformLogout());
             LoadUserProfileCommand = new AsyncRelayCommand(LoadUserProfile);
 
-            _ = LoadUserProfile(); // Iniciar la carga al construir el ViewModel
+            _ = LoadUserProfile();
         }
 
         private async Task LoadUserProfile()
@@ -63,39 +63,34 @@ namespace proyectoFin.MVVM.ViewModel
                 if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int idClienteActual))
                 {
                     ErrorMessage = "No se pudo obtener el ID del usuario logueado.";
-                    IsBusy = false;
                     return;
                 }
 
-                // --- LÓGICA DE ESPERA/REINTENTO PARA EL TOKEN ---
                 string token = await SecureStorage.GetAsync("jwt_token");
                 int retryCount = 0;
                 const int maxRetries = 3;
-                const int retryDelayMs = 500; // Retraso de 0.5 segundos
+                const int retryDelayMs = 500;
 
-                if (string.IsNullOrEmpty(token)) // Solo si el token es nulo al principio
+                if (string.IsNullOrEmpty(token))
                 {
                     while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
                     {
                         Console.WriteLine($"DEBUG: Token no encontrado aún en ProfileViewModel. Reintentando... (Intento {retryCount + 1})");
-                        await Task.Delay(retryDelayMs); // Esperar antes de reintentar
-                        token = await SecureStorage.GetAsync("jwt_token"); // Intentar obtener el token de nuevo
+                        await Task.Delay(retryDelayMs);
+                        token = await SecureStorage.GetAsync("jwt_token");
                         retryCount++;
                     }
                 }
 
-                // Si después de los reintentos el token sigue sin estar disponible,
-                // y esta API requiere autenticación, no podemos continuar.
                 if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
                 {
-                    ErrorMessage = "No se pudo obtener el token de autenticación para cargar el perfil. Por favor, intente iniciar sesión de nuevo si el problema persiste.";
+                    ErrorMessage = "No se pudo obtener el token de autenticación para cargar el perfil. Por favor, intente iniciar sesión de nuevo.";
                     await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
                     IsBusy = false;
                     return;
                 }
-                // --- FIN LÓGICA DE ESPERA ---
 
-
+                // ¡CORRECCIÓN CLAVE AQUÍ! Llamada al método existente en IBakeOrTakeApi
                 var response = await _apiService.GetClienteByIdAsync(idClienteActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)

@@ -11,6 +11,7 @@ using Microsoft.Maui.Storage;
 using System;
 using Refit;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq; // Para Where
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -31,20 +32,24 @@ namespace proyectoFin.MVVM.ViewModel
         public bool IsNotBusy => !IsBusy;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsClientUser))]
+        [NotifyPropertyChangedFor(nameof(IsCompanyUser))]
         private string _userType;
 
-        // Propiedades para el formulario de valoración (si se implementa en la misma página)
+        public bool IsClientUser => UserType == "Cliente";
+        public bool IsCompanyUser => UserType == "Empresa";
+
+        // Propiedades para el formulario de valoración
         [ObservableProperty]
         private int _puntuacionValoracion;
         [ObservableProperty]
         private string _comentarioValoracion;
-        [ObservableProperty]
-        private PedidoOfertaResponse _selectedOrderToRate; // Para saber qué pedido se está valorando
+        private PedidoOfertaResponse _selectedOrderToRate;
 
         public IAsyncRelayCommand LoadOrdersCommand { get; }
-        public IAsyncRelayCommand<PedidoOfertaResponse> CompleteOrderCommand { get; } // Para empresa
-        public IAsyncRelayCommand<PedidoOfertaResponse> ShowRateOrderFormCommand { get; } // Para cliente, mostrar formulario
-        public IAsyncRelayCommand RateOrderCommand { get; } // Para cliente, enviar valoración
+        public IAsyncRelayCommand<PedidoOfertaResponse> CompleteOrderCommand { get; }
+        public IAsyncRelayCommand<PedidoOfertaResponse> ShowRateOrderFormCommand { get; }
+        public IAsyncRelayCommand RateOrderCommand { get; }
 
         public MyOrdersViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
@@ -103,14 +108,18 @@ namespace proyectoFin.MVVM.ViewModel
                 }
 
                 ApiResponse<List<PedidoOfertaResponse>> response;
+                List<PedidoOfertaResponse> filteredContent = new List<PedidoOfertaResponse>(); // Nuevo
 
                 if (UserType == "Cliente")
                 {
                     response = await _apiService.GetClientOrdersAsync(userIdActual);
+                    filteredContent = response.Content; // Para clientes, no hay filtro inicial
                 }
                 else if (UserType == "Empresa")
                 {
                     response = await _apiService.GetCompanyOffersAsync(userIdActual);
+                    // ¡CORRECCIÓN CLAVE AQUÍ! Filtrar y asignar a la nueva lista
+                    filteredContent = response.Content?.Where(po => po.IdClienteRealiza.HasValue).ToList();
                 }
                 else
                 {
@@ -119,16 +128,20 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                if (response.IsSuccessStatusCode && response.Content != null)
+                if (response.IsSuccessStatusCode && filteredContent != null) // Usar filteredContent
                 {
                     Orders.Clear();
-                    foreach (var orderResponse in response.Content)
+                    foreach (var orderResponse in filteredContent) // Usar filteredContent
                     {
                         Orders.Add(orderResponse);
                     }
                     if (Orders.Count == 0)
                     {
                         ErrorMessage = "No hay pedidos/ofertas para mostrar.";
+                    }
+                    else
+                    {
+                        ErrorMessage = string.Empty;
                     }
                 }
                 else
@@ -154,10 +167,15 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // Método para que la EMPRESA marque un pedido como completado
         private async Task CompleteOrder(PedidoOfertaResponse orderToComplete)
         {
-            if (orderToComplete == null || IsBusy) return;
+            if (orderToComplete == null || IsBusy || UserType != "Empresa") return;
+
+            if (orderToComplete.Estado != "Pedido_Pendiente")
+            {
+                await Application.Current.MainPage.DisplayAlert("Advertencia", "Este pedido no está pendiente o ya fue entregado.", "OK");
+                return;
+            }
 
             bool confirm = await Application.Current.MainPage.DisplayAlert("Confirmar Entrega", $"¿Marcar el pedido de '{orderToComplete.RecetaNombre}' para '{orderToComplete.ClienteRealizaNombre}' como entregado?", "Sí", "No");
             if (!confirm) return;
@@ -171,13 +189,13 @@ namespace proyectoFin.MVVM.ViewModel
 
                 if (response.IsSuccessStatusCode)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Éxito", "Pedido marcado como completado.", "OK");
-                    await LoadOrdersCommand.ExecuteAsync(null); // Recargar la lista
+                    await Application.Current.MainPage.DisplayAlert("Éxito", "Pedido marcado como entregado.", "OK");
+                    await LoadOrdersCommand.ExecuteAsync(null);
                 }
                 else
                 {
                     var errorContent = response.Error?.Content;
-                    ErrorMessage = $"Error al completar pedido: {response.StatusCode}. Detalles: {errorContent}";
+                    ErrorMessage = $"Error al marcar como entregado: {response.StatusCode}. Detalles: {errorContent}";
                     await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
                 }
             }
@@ -188,7 +206,7 @@ namespace proyectoFin.MVVM.ViewModel
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Ocurrió un error inesperado al completar el pedido: {ex.Message}";
+                ErrorMessage = $"Ocurrió un error inesperado al marcar como entregado: {ex.Message}";
                 await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
             }
             finally
@@ -197,55 +215,38 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // Método para que el CLIENTE muestre el formulario de valoración
         private async Task ShowRateOrderForm(PedidoOfertaResponse orderToRate)
         {
-            if (orderToRate == null) return;
+            if (orderToRate == null || IsBusy || UserType != "Cliente") return;
 
-            SelectedOrderToRate = orderToRate; // Almacenar el pedido a valorar
-            PuntuacionValoracion = 0; // Resetear
-            ComentarioValoracion = string.Empty; // Resetear
-
-            // Aquí podrías mostrar un modal o una sección de UI para la valoración
-            // Por ejemplo, usando CommunityToolkit.Maui.Views.Popup o un ContentDialog
-            // Por ahora, solo mostraremos una alerta para simular el formulario.
-            var result = await Application.Current.MainPage.DisplayPromptAsync(
-                "Valorar Pedido",
-                $"Valora tu experiencia con '{orderToRate.EmpresaNombreNegocio}' por la receta '{orderToRate.RecetaNombre}'.",
-                "Enviar",
-                "Cancelar",
-                "Comentario (opcional)",
-                maxLength: 200,
-                keyboard: Keyboard.Text);
-
-            if (result != null) // Si el usuario no canceló
+            if (orderToRate.Estado != "Pedido_Completado" || orderToRate.Puntuacion.HasValue)
             {
-                // Intentar parsear la puntuación (esto es una simplificación)
-                var puntuacionString = await Application.Current.MainPage.DisplayPromptAsync(
-                    "Puntuación (1-5)",
-                    "Introduce tu puntuación (1-5):",
-                    "Aceptar",
-                    "Cancelar",
-                    keyboard: Keyboard.Numeric);
-
-                if (int.TryParse(puntuacionString, out int puntuacion))
-                {
-                    PuntuacionValoracion = puntuacion;
-                    ComentarioValoracion = result; // El resultado del primer prompt es el comentario
-
-                    await RateOrder(); // Llamar al comando de valoración
-                }
-                else
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Puntuación inválida. Debe ser un número entre 1 y 5.", "OK");
-                }
+                await Application.Current.MainPage.DisplayAlert("Advertencia", "Este pedido no está listo para ser valorado o ya ha sido valorado.", "OK");
+                return;
             }
+
+            _selectedOrderToRate = orderToRate;
+            PuntuacionValoracion = 0;
+            ComentarioValoracion = string.Empty;
+
+            string puntuacionStr = await Application.Current.MainPage.DisplayPromptAsync("Valorar Pedido", "Introduce tu puntuación (1-5):", "OK", "Cancelar", placeholder: "Ej: 5", keyboard: Keyboard.Numeric);
+            if (string.IsNullOrWhiteSpace(puntuacionStr) || !int.TryParse(puntuacionStr, out int puntuacion) || puntuacion < 1 || puntuacion > 5)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Puntuación inválida. Debe ser un número entre 1 y 5.", "OK");
+                return;
+            }
+
+            string comentario = await Application.Current.MainPage.DisplayPromptAsync("Valorar Pedido", "Deja un comentario (opcional):", "OK", "Cancelar", placeholder: "Ej: Muy rico!");
+
+            PuntuacionValoracion = puntuacion;
+            ComentarioValoracion = comentario;
+
+            await RateOrder();
         }
 
-        // Método para que el CLIENTE envíe la valoración
         private async Task RateOrder()
         {
-            if (SelectedOrderToRate == null || IsBusy) return;
+            if (_selectedOrderToRate == null || IsBusy || UserType != "Cliente") return;
 
             IsBusy = true;
             ErrorMessage = string.Empty;
@@ -265,13 +266,13 @@ namespace proyectoFin.MVVM.ViewModel
                     Comentario = ComentarioValoracion
                 };
 
-                var response = await _apiService.RateOrderAsync(SelectedOrderToRate.IdPedidoOferta, request);
+                var response = await _apiService.RateOrderAsync(_selectedOrderToRate.IdPedidoOferta, request);
 
                 if (response.IsSuccessStatusCode)
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Pedido valorado exitosamente.", "OK");
-                    await LoadOrdersCommand.ExecuteAsync(null); // Recargar la lista
-                    SelectedOrderToRate = null; // Limpiar el pedido seleccionado
+                    await LoadOrdersCommand.ExecuteAsync(null);
+                    _selectedOrderToRate = null;
                 }
                 else
                 {

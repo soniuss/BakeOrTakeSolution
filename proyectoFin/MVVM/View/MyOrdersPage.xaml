@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-                 xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
-                 xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
-                 xmlns:converters="clr-namespace:proyectoFin.Converters"
-                 x:DataType="viewmodel:MyOrdersViewModel"
-                 x:Class="proyectoFin.MVVM.View.MyOrdersPage"
-                 Title="Mis Pedidos"
-                 BackgroundColor="#FFE7EA">
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
+             xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
+             xmlns:converters="clr-namespace:proyectoFin.Converters"
+             x:DataType="viewmodel:MyOrdersViewModel"
+             x:Class="proyectoFin.MVVM.View.MyOrdersPage"
+             Title="Mis Pedidos"
+             BackgroundColor="#FFE7EA">
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <!-- No necesitamos StringToBoolConverter si usamos IsClientUser/IsCompanyUser directamente -->
+
         <Style TargetType="Border">
             <Setter Property="StrokeShape">
                 <Setter.Value>
@@ -39,22 +41,21 @@
     </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto,Auto"
-              Padding="20">
+          Padding="20">
         <Label Text="Historial de Pedidos"
-                   TextColor="#5C4033"
-                   FontSize="32"
-                   FontAttributes="Bold"
-                   Margin="0,0,0,20"/>
+               TextColor="#5C4033"
+               FontSize="32"
+               FontAttributes="Bold"
+               Margin="0,0,0,20"/>
 
         <CollectionView Grid.Row="1"
-                            ItemsSource="{Binding Orders}"
-                            SelectionMode="None">
+                        ItemsSource="{Binding Orders}"
+                        SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="modelResponses:PedidoOfertaResponse">
                     <Border>
                         <VerticalStackLayout Spacing="5">
-                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
-                                <!-- ¡CORRECCIÓN CLAVE AQUÍ! Definir más filas -->
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
                                 <Label Grid.Column="0" Text="{Binding RecetaNombre}" TextColor="#5C4033" FontSize="18" FontAttributes="Bold"/>
                                 <Label Grid.Column="1" Text="{Binding Estado}" TextColor="#FF6F61"/>
 
@@ -64,30 +65,37 @@
 
                                 <!-- Información de Cliente para Empresas (visible condicionalmente) -->
                                 <Label Grid.Row="3" Grid.Column="0" Text="{Binding ClienteRealizaNombre, StringFormat='Cliente: {0}'}" TextColor="#7A5E48" FontSize="12"
-                                           IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=UserType, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Empresa'}"/>
+                                       IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsCompanyUser}"/>
+                                <!-- ¡CORRECCIÓN CLAVE! Usar IsCompanyUser directamente -->
                                 <Label Grid.Row="3" Grid.Column="1" Text="{Binding FechaPedido, StringFormat='Fecha Pedido: {0:d}'}" TextColor="#7A5E48" FontSize="12"
-                                           IsVisible="{Binding FechaPedido}"/>
-
-                                <!-- Botones de Acción (en su propia fila dentro del Grid) -->
+                                       IsVisible="{Binding FechaPedido}"/>
+                            </Grid>
+                            <!-- Botones de Acción -->
                                 <HorizontalStackLayout Grid.Row="4" Grid.ColumnSpan="2" HorizontalOptions="End" Margin="0,10,0,0">
                                     <!-- Botón "Marcar como Entregado" para EMPRESAS: visible si es empresa y pedido pendiente -->
                                     <Button Text="Entregado"
-                                                Style="{StaticResource ActionButtonStyle}"
-                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=UserType, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Empresa'}"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=CompleteOrderCommand}"
-                                                CommandParameter="{Binding .}"
-                                                IsEnabled="{Binding Disponibilidad}"/>
-                                    <!-- Boton activo solo si la oferta es disponible-->
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsCompanyUser}" 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=CompleteOrderCommand}"
+                                            CommandParameter="{Binding .}"
+                                            IsEnabled="{Binding Estado, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Pedido_Pendiente'}"/>
 
-                                    <!-- Botón "Valorar Pedido" para CLIENTES: visible si es cliente y pedido completado y no valorado -->
-                                    <Button Text="Valorar"
-                                                Style="{StaticResource ActionButtonStyle}"
-                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=UserType, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Cliente'}"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=ShowRateOrderFormCommand}"
-                                                CommandParameter="{Binding .}"
-                                                IsEnabled="{Binding Estado, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Pedido_Completado'}" />
+                                        <!-- Botón "Valorar Pedido" para CLIENTES: visible si es cliente y pedido completado y no valorado -->
+                                        <Button Text="Valorar"
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsClientUser}" 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=ShowRateOrderFormCommand}"
+                                            CommandParameter="{Binding .}"
+                                            IsEnabled="{Binding Estado, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Pedido_Completado'}" />
                                 </HorizontalStackLayout>
-                            </Grid>
+
+                                <!-- Sección de Valoración (si el pedido ya está valorado) -->
+                                <VerticalStackLayout Grid.Row="5" Grid.ColumnSpan="2" Spacing="2" Margin="0,10,0,0"
+                                                     IsVisible="{Binding Puntuacion}">
+                                    <Label Text="{Binding Puntuacion, StringFormat='Valoración: {0} / 5'}" FontAttributes="Bold" TextColor="#5C4033"/>
+                                    <Label Text="{Binding Comentario}" TextColor="#7A5E48" IsVisible="{Binding Comentario, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='False'}"/>
+                                </VerticalStackLayout>
+
                         </VerticalStackLayout>
                     </Border>
                 </DataTemplate>

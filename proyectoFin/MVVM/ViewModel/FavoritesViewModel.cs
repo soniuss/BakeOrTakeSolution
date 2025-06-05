@@ -53,7 +53,6 @@ namespace proyectoFin.MVVM.ViewModel
             ErrorMessage = string.Empty;
             ShowNoFavoritesMessage = false;
 
-            // ¡NUEVA LÓGICA PARA ESPERAR EL TOKEN!
             string token = await SecureStorage.GetAsync("jwt_token");
             int retryCount = 0;
             const int maxRetries = 3;
@@ -78,7 +77,6 @@ namespace proyectoFin.MVVM.ViewModel
                 ShowNoFavoritesMessage = true;
                 return;
             }
-            // --- FIN LÓGICA DE ESPERA ---
 
             try
             {
@@ -91,8 +89,8 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // ¡ELIMINAR DATOS DE PRUEBA Y LLAMAR A LA API REAL!
-                var response = await _apiService.GetFavoritosByClientAsync(idClienteActual); // ¡Llamada a la API real!
+                // ¡CORRECCIÓN CLAVE AQUÍ! Llamada al método existente en IBakeOrTakeApi
+                var response = await _apiService.GetFavoritosByClientAsync(idClienteActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
@@ -121,7 +119,6 @@ namespace proyectoFin.MVVM.ViewModel
             {
                 ErrorMessage = $"Ocurrió un error inesperado al cargar las recetas favoritas: {ex.Message}";
                 await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
-                ShowNoFavoritesMessage = true;
             }
             finally
             {
@@ -135,7 +132,6 @@ namespace proyectoFin.MVVM.ViewModel
             {
                 Console.WriteLine($"Receta favorita seleccionada: {selectedReceta.Nombre}");
                 await Application.Current.MainPage.DisplayAlert("Receta Favorita Seleccionada", $"Has seleccionado tu favorita: {selectedReceta.Nombre}", "OK");
-                // Implementar navegación a RecetaDetallePage
             }
         }
     }

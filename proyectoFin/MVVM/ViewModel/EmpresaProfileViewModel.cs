@@ -17,22 +17,20 @@ namespace proyectoFin.MVVM.ViewModel
         private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
-        private string _email; // Email de la empresa (generalmente no editable)
+        private string _email;
 
         [ObservableProperty]
-        private string _nombreNegocio; // Nombre del negocio
+        private string _nombreNegocio;
 
         [ObservableProperty]
-        private string _descripcion; // Descripción del negocio
+        private string _descripcion;
 
         [ObservableProperty]
-        private string _ubicacion; // Ubicación de la empresa
+        private string _ubicacion;
 
-        // ¡NUEVO! Propiedad para controlar el modo de edición
         [ObservableProperty]
         private bool _isEditing;
 
-        // Propiedad calculada para el estado de "no ocupado" (útil para IsEnabled)
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
         private bool _isBusy;
@@ -42,14 +40,10 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private string _errorMessage;
 
-        // Comandos
         public IAsyncRelayCommand SaveChangesCommand { get; }
         public IAsyncRelayCommand LoadProfileCommand { get; }
         public IRelayCommand LogoutCommand { get; }
-
-        // ¡NUEVO! Comando para alternar el modo de edición
         public IRelayCommand ToggleEditModeCommand { get; }
-
 
         public EmpresaProfileViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
@@ -59,24 +53,19 @@ namespace proyectoFin.MVVM.ViewModel
             SaveChangesCommand = new AsyncRelayCommand(SaveChanges);
             LoadProfileCommand = new AsyncRelayCommand(LoadEmpresaProfile);
             LogoutCommand = new RelayCommand(async () => await PerformLogout());
-
-            // ¡NUEVO! Inicializar el comando de alternar edición
             ToggleEditModeCommand = new RelayCommand(ToggleEditMode);
 
-            _ = LoadEmpresaProfile(); // Cargar perfil al inicializar
+            _ = LoadEmpresaProfile();
         }
 
-        // ¡NUEVO! Método para alternar el modo de edición
         private void ToggleEditMode()
         {
             IsEditing = !IsEditing;
-            // Si salimos del modo edición sin guardar, recargar los datos originales
             if (!IsEditing)
             {
-                _ = LoadEmpresaProfile(); // Recargar para descartar cambios no guardados
+                _ = LoadEmpresaProfile();
             }
         }
-
 
         private async Task LoadEmpresaProfile()
         {
@@ -118,6 +107,7 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
+                // ¡CORRECCIÓN CLAVE AQUÍ! Llamada al método existente en IBakeOrTakeApi
                 var response = await _apiService.GetEmpresaByIdAsync(idEmpresaActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
@@ -178,19 +168,20 @@ namespace proyectoFin.MVVM.ViewModel
                 var updateRequest = new Empresa
                 {
                     id_empresa = idEmpresaActual,
-                    email = Email, // Asumimos que email no se cambia o se maneja aparte
+                    email = Email,
                     nombre_negocio = NombreNegocio,
                     descripcion = Descripcion,
                     ubicacion = Ubicacion,
                 };
 
+                // ¡CORRECCIÓN CLAVE AQUÍ! Llamada al método existente en IBakeOrTakeApi
                 var response = await _apiService.UpdateEmpresaAsync(idEmpresaActual, updateRequest);
 
                 if (response.IsSuccessStatusCode)
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Perfil de empresa actualizado exitosamente.", "OK");
-                    IsEditing = false; // Salir del modo edición al guardar
-                    _ = LoadEmpresaProfile(); // Recargar para asegurar los datos más recientes
+                    IsEditing = false;
+                    _ = LoadEmpresaProfile();
                 }
                 else
                 {
