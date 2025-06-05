@@ -80,24 +80,23 @@ namespace proyectoFin.Services
 
         // Obtener pedidos realizados por un cliente
         [Get("/api/PedidosOfertas/ByClient/{id_cliente}")]
-        Task<ApiResponse<List<PedidoOfertaResponse>>> GetClientOrdersAsync(int id_cliente); // ¡CAMBIO AQUÍ!
+        Task<ApiResponse<List<PedidoOfertaResponse>>> GetClientOrdersAsync(int id_cliente);
 
         // Obtener ofertas y pedidos de una empresa
         [Get("/api/PedidosOfertas/ByCompany/{id_empresa}")]
-        Task<ApiResponse<List<PedidoOfertaResponse>>> GetCompanyOffersAsync(int id_empresa); // ¡CAMBIO AQUÍ! (Y añadir si faltaba)
+        Task<ApiResponse<List<PedidoOfertaResponse>>> GetCompanyOffersAsync(int id_empresa);
 
-        // NUEVO: Marcar un pedido como completado (por Empresa)
+        // ¡CORRECCIÓN CLAVE AQUÍ! Añadir el atributo HttpPut y el path correcto
         [HttpPut("/api/PedidosOfertas/complete/{id_pedido_oferta}")]
-        Task<ApiResponse<object>> CompleteOrderAsync(int id_pedido_oferta); // Devuelve 204 No Content
+        Task<ApiResponse<object>> CompleteOrderAsync(int id_pedido_oferta);
 
-        // NUEVO: Valorar un pedido completado (por Cliente)
+        // Valorar un pedido completado (por Cliente)
         [HttpPut("/api/PedidosOfertas/rate/{id_pedido_oferta}")]
-        Task<ApiResponse<object>> RateOrderAsync(int id_pedido_oferta, [Body] ValoracionRequest request); // Devuelve 204 No Content
-        
-        // NUEVO: Eliminar una oferta (por Empresa)
-        [HttpDelete("/api/PedidosOfertas/{id_pedido_oferta}")]
-        Task<ApiResponse<object>> DeleteOfferAsync(int id_pedido_oferta); // Devuelve 204 No Content
+        Task<ApiResponse<object>> RateOrderAsync(int id_pedido_oferta, [Body] ValoracionRequest request);
 
+        // Eliminar una oferta (por Empresa)
+        [HttpDelete("/api/PedidosOfertas/{id_pedido_oferta}")]
+        Task<ApiResponse<object>> DeleteOfferAsync(int id_pedido_oferta);
     }
 
 }
