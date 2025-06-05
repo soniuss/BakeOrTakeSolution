@@ -10,7 +10,7 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
-using proyectoFin.MVVM.View; // ¡CORRECCIÓN CLAVE AQUÍ! Para ObservableCollection
+using proyectoFin.MVVM.View;
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -59,6 +59,7 @@ namespace proyectoFin.MVVM.ViewModel
         public IAsyncRelayCommand<PedidoOfertaResponse> PlaceOrderCommand { get; }
         public IAsyncRelayCommand EditRecipeCommand { get; }
         public IAsyncRelayCommand LoadOffersCommand { get; }
+        public IAsyncRelayCommand<PedidoOfertaResponse> DeleteOfferCommand { get; } // ¡NUEVO! Comando para eliminar oferta
 
         public RecetaDetalleViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
@@ -72,11 +73,12 @@ namespace proyectoFin.MVVM.ViewModel
             PlaceOrderCommand = new AsyncRelayCommand<PedidoOfertaResponse>(PlaceOrder);
             EditRecipeCommand = new AsyncRelayCommand(EditRecipe);
             LoadOffersCommand = new AsyncRelayCommand(LoadOffers);
+            DeleteOfferCommand = new AsyncRelayCommand<PedidoOfertaResponse>(DeleteOffer); // ¡NUEVO! Inicializar comando
         }
 
         private async Task LoadReceta()
         {
-            if (IsBusy || RecetaId == 0) return;
+            if (IsBusy) return;
 
             IsBusy = true;
             ErrorMessage = string.Empty;
@@ -94,6 +96,8 @@ namespace proyectoFin.MVVM.ViewModel
                     var userIdString = await SecureStorage.GetAsync("user_id");
                     if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int loggedInUserId))
                     {
+                        // Para clientes, es si es su receta
+                        // Para empresas, aquí podrías tener otra propiedad como IsOfferOwnedByCompany
                         IsRecipeOwnedByUser = (Receta.IdClienteCreador == loggedInUserId);
                     }
 
@@ -154,6 +158,7 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
+
         private async Task MakeOffer()
         {
             if (IsBusy || Receta == null || !IsCompanyUser) return;
@@ -182,7 +187,7 @@ namespace proyectoFin.MVVM.ViewModel
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Oferta creada exitosamente.", "OK");
-                    await LoadOffersCommand.ExecuteAsync(null);
+                    await LoadOffersCommand.ExecuteAsync(null); // Recargar ofertas para ver la nueva
                     OfferPrice = 0;
                     OfferDescription = string.Empty;
                     OfferAvailability = true;
@@ -286,6 +291,64 @@ namespace proyectoFin.MVVM.ViewModel
             {
                 Console.WriteLine("Error: Contexto de navegación inesperado para Editar Receta desde RecetaDetalle.");
                 await Application.Current.MainPage.DisplayAlert("Error", "Contexto de navegación no compatible.", "OK");
+            }
+        }
+
+        // ¡NUEVO! Método para eliminar una oferta
+        private async Task DeleteOffer(PedidoOfertaResponse offerToDelete)
+        {
+            if (offerToDelete == null || IsBusy) return;
+
+            // Verificar si el usuario actual es la empresa que hizo la oferta
+            var userIdString = await SecureStorage.GetAsync("user_id");
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int loggedInUserId))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "No se pudo identificar al usuario para eliminar la oferta.", "OK");
+                return;
+            }
+
+            if (offerToDelete.IdEmpresa != loggedInUserId || UserType != "Empresa")
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Solo la empresa que creó esta oferta puede eliminarla.", "OK");
+                return;
+            }
+
+            bool confirm = await Application.Current.MainPage.DisplayAlert("Confirmar Eliminación", $"¿Estás seguro de que quieres eliminar tu oferta para '{offerToDelete.RecetaNombre}'?", "Sí", "No");
+            if (!confirm) return;
+
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+
+            try
+            {
+                // NUEVO ENDPOINT EN API: DELETE /api/PedidosOfertas/{id_pedido_oferta}
+                var response = await _apiService.DeleteOfferAsync(offerToDelete.IdPedidoOferta); // Asume este método en IBakeOrTakeApi
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Éxito", "Oferta eliminada exitosamente.", "OK");
+                    await LoadOffersCommand.ExecuteAsync(null); // Recargar la lista de ofertas
+                }
+                else
+                {
+                    var errorContent = response.Error?.Content;
+                    ErrorMessage = $"Error al eliminar oferta: {response.StatusCode}. Detalles: {errorContent}";
+                    Console.WriteLine($"API Error al eliminar oferta: {response.StatusCode} - {errorContent}");
+                }
+            }
+            catch (Refit.ApiException ex)
+            {
+                ErrorMessage = $"Error de conexión o API: {(int)ex.StatusCode} - {ex.Message}. Detalles: {ex.Content}";
+                Console.WriteLine($"Refit API Exception al eliminar oferta: {(int)ex.StatusCode} - {ex.Message} - {ex.Content}");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Ocurrió un error inesperado al eliminar la oferta: {ex.Message}";
+                Console.WriteLine($"General Exception en DeleteOffer: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
     }

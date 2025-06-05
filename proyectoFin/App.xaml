@@ -10,7 +10,8 @@
             <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
-            
+            <converters:SelectionToBackgroundConverter x:Key="SelectionToBackgroundConverter" />
+            <converters:SelectionToTextColorConverter x:Key="SelectionToTextColorConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />

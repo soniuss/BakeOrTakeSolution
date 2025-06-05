@@ -10,11 +10,13 @@
              BackgroundColor="#FFE7EA">
 
     <ContentPage.Resources>
+        <!-- ¡ATENCIÓN A ESTAS DECLARACIONES! DEBEN COINCIDIR CON TUS ARCHIVOS DE CONVERTER.CS -->
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
-        <!-- ¡NUEVO! Para HasOffers -->
         <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
-        <!-- ¡NUEVO! Para disponibilidad -->
+        <!-- Los conversores de Selección solo son necesarios si se usan en esta página, pero los mantengo si los tienes globalmente -->
+        <converters:SelectionToBackgroundConverter x:Key="SelectionToBackgroundConverter" />
+        <converters:SelectionToTextColorConverter x:Key="SelectionToTextColorConverter" />
 
         <Style TargetType="Label">
             <Setter Property="TextColor" Value="#5C4033"/>
@@ -47,6 +49,19 @@
             <Setter Property="PlaceholderColor" Value="#7A5E48"/>
             <Setter Property="AutoSize" Value="TextChanges"/>
             <Setter Property="HeightRequest" Value="100"/>
+        </Style>
+        <!-- ESTILO ESPECÍFICO PARA BOTONES DE PELIGRO (Eliminar) -->
+        <Style x:Key="DangerButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF6F61"/>
+            <!-- Coral tierno -->
+            <Setter Property="TextColor" Value="#FFF5E1"/>
+            <!-- Crema vainilla -->
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="HeightRequest" Value="40"/>
+            <Setter Property="FontSize" Value="Small"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
         </Style>
     </ContentPage.Resources>
 
@@ -91,7 +106,7 @@
             <BoxView HeightRequest="1" Color="#FF8FAB" Margin="0,20"/>
             <!-- Separador -->
 
-            <!-- Sección de Ofertas (visible para todos, pero con acciones condicionales) -->
+            <!-- Sección de Ofertas Disponibles (visible para todos, pero con acciones condicionales) -->
             <Label Text="Ofertas Disponibles"
                    FontSize="Medium"
                    FontAttributes="Bold"
@@ -118,17 +133,30 @@
                                 <Label Text="{Binding EmpresaUbicacion, StringFormat='Ubicación: {0}'}" FontSize="Small" TextColor="#7A5E48"/>
                                 <Label Text="{Binding Disponibilidad, StringFormat='Disponible: {0}'}" FontSize="Small" TextColor="{Binding Disponibilidad, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#5C4033|Red'}"/>
 
-                                <!-- Botón "Hacer Pedido" (visible solo para clientes y si la oferta está disponible) -->
-                                <Button Text="Hacer Pedido"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=PlaceOrderCommand}"
-                                        CommandParameter="{Binding .}"
-                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=IsClientUser}"
-                                        BackgroundColor="#FF8FAB"
-                                        TextColor="#5C4033"
-                                        CornerRadius="10"
-                                        HeightRequest="40"
-                                        FontSize="Small"
-                                        Padding="10,5"/>
+                                <HorizontalStackLayout HorizontalOptions="End">
+                                    <!-- Botón "Hacer Pedido" (visible solo para clientes y si la oferta está disponible) -->
+                                    <Button Text="Hacer Pedido"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=PlaceOrderCommand}"
+                                            CommandParameter="{Binding .}"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=IsClientUser}"
+                                            BackgroundColor="#FF8FAB"
+                                            TextColor="#5C4033"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            FontSize="Small"
+                                            Padding="10,5"/>
+
+                                    <!-- Botón "Eliminar Oferta" para Empresas -->
+                                    <Button Text="Eliminar Oferta"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=DeleteOfferCommand}"
+                                            CommandParameter="{Binding .}"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:RecetaDetalleViewModel}}, Path=IsCompanyUser}"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            FontSize="Small"
+                                            Padding="10,5"/>
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Frame>
                     </DataTemplate>
@@ -139,7 +167,8 @@
             <!-- Separador -->
 
             <!-- Formulario para HACER UNA OFERTA (visible solo para empresas) -->
-            <VerticalStackLayout IsVisible="{Binding IsCompanyUser}" Spacing="15">
+            <VerticalStackLayout IsVisible="{Binding IsCompanyUser}" Spacing="15" BackgroundColor="#FFE7EA" Padding="0">
+                <!-- ¡ATENCIÓN AL BackgroundColor y Padding! -->
                 <Label Text="Crear Nueva Oferta"
                        FontSize="Medium"
                        FontAttributes="Bold"

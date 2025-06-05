@@ -17,7 +17,7 @@ namespace proyectoFin.MVVM.ViewModel
         private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
-        private string _email; // Email de la empresa
+        private string _email; // Email de la empresa (generalmente no editable)
 
         [ObservableProperty]
         private string _nombreNegocio; // Nombre del negocio
@@ -28,6 +28,11 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private string _ubicacion; // Ubicación de la empresa
 
+        // ¡NUEVO! Propiedad para controlar el modo de edición
+        [ObservableProperty]
+        private bool _isEditing;
+
+        // Propiedad calculada para el estado de "no ocupado" (útil para IsEnabled)
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
         private bool _isBusy;
@@ -37,9 +42,14 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private string _errorMessage;
 
+        // Comandos
         public IAsyncRelayCommand SaveChangesCommand { get; }
         public IAsyncRelayCommand LoadProfileCommand { get; }
-        public IRelayCommand LogoutCommand { get; } // Añadir si quieres el logout aquí
+        public IRelayCommand LogoutCommand { get; }
+
+        // ¡NUEVO! Comando para alternar el modo de edición
+        public IRelayCommand ToggleEditModeCommand { get; }
+
 
         public EmpresaProfileViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
@@ -48,10 +58,25 @@ namespace proyectoFin.MVVM.ViewModel
 
             SaveChangesCommand = new AsyncRelayCommand(SaveChanges);
             LoadProfileCommand = new AsyncRelayCommand(LoadEmpresaProfile);
-            LogoutCommand = new RelayCommand(async () => await PerformLogout()); // Inicializar el comando de logout
+            LogoutCommand = new RelayCommand(async () => await PerformLogout());
+
+            // ¡NUEVO! Inicializar el comando de alternar edición
+            ToggleEditModeCommand = new RelayCommand(ToggleEditMode);
 
             _ = LoadEmpresaProfile(); // Cargar perfil al inicializar
         }
+
+        // ¡NUEVO! Método para alternar el modo de edición
+        private void ToggleEditMode()
+        {
+            IsEditing = !IsEditing;
+            // Si salimos del modo edición sin guardar, recargar los datos originales
+            if (!IsEditing)
+            {
+                _ = LoadEmpresaProfile(); // Recargar para descartar cambios no guardados
+            }
+        }
+
 
         private async Task LoadEmpresaProfile()
         {
@@ -69,7 +94,6 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // --- Lógica de espera/reintento para el token ---
                 string token = await SecureStorage.GetAsync("jwt_token");
                 int retryCount = 0;
                 const int maxRetries = 3;
@@ -93,7 +117,6 @@ namespace proyectoFin.MVVM.ViewModel
                     IsBusy = false;
                     return;
                 }
-                // --- FIN LÓGICA DE ESPERA ---
 
                 var response = await _apiService.GetEmpresaByIdAsync(idEmpresaActual);
 
@@ -152,10 +175,10 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                var updateRequest = new Empresa // Asumimos que la API acepta la entidad Empresa para la actualización
+                var updateRequest = new Empresa
                 {
                     id_empresa = idEmpresaActual,
-                    email = Email,
+                    email = Email, // Asumimos que email no se cambia o se maneja aparte
                     nombre_negocio = NombreNegocio,
                     descripcion = Descripcion,
                     ubicacion = Ubicacion,
@@ -166,8 +189,8 @@ namespace proyectoFin.MVVM.ViewModel
                 if (response.IsSuccessStatusCode)
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Perfil de empresa actualizado exitosamente.", "OK");
-                    // Opcional: Recargar el perfil para asegurar que los datos estén actualizados
-                    // _ = LoadEmpresaProfile();
+                    IsEditing = false; // Salir del modo edición al guardar
+                    _ = LoadEmpresaProfile(); // Recargar para asegurar los datos más recientes
                 }
                 else
                 {
@@ -192,7 +215,6 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // Método para cerrar sesión (si se mueve aquí)
         private async Task PerformLogout()
         {
             SecureStorage.Remove("jwt_token");

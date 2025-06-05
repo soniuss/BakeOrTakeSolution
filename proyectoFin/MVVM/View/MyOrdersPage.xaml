@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="proyectoFin.MVVM.View.MyOrdersPage"
-             Title="Mis Pedidos"
-             BackgroundColor="#FFE7EA">
+                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                 xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
+                 xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
+                 xmlns:converters="clr-namespace:proyectoFin.Converters"
+                 x:DataType="viewmodel:MyOrdersViewModel"
+                 x:Class="proyectoFin.MVVM.View.MyOrdersPage"
+                 Title="Mis Pedidos"
+                 BackgroundColor="#FFE7EA">
+
     <ContentPage.Resources>
+        <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <Style TargetType="Border">
             <Setter Property="StrokeShape">
                 <Setter.Value>
@@ -16,49 +23,98 @@
             <Setter Property="Padding" Value="15"/>
             <Setter Property="Margin" Value="0,5"/>
         </Style>
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF8FAB"/>
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="HeightRequest" Value="40"/>
+            <Setter Property="FontSize" Value="Small"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5,0"/>
+        </Style>
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="BackgroundColor" Value="#FF6F61"/>
+            <Setter Property="TextColor" Value="#FFF5E1"/>
+        </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,*"
-          Padding="20">
+    <Grid RowDefinitions="Auto,*,Auto,Auto"
+              Padding="20">
         <Label Text="Historial de Pedidos"
-               TextColor="#5C4033"
-               FontSize="32"
-               FontAttributes="Bold"
-               Margin="0,0,0,20"/>
+                   TextColor="#5C4033"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   Margin="0,0,0,20"/>
 
         <CollectionView Grid.Row="1"
-                        ItemsSource="{Binding Orders}">
+                            ItemsSource="{Binding Orders}"
+                            SelectionMode="None">
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="modelResponses:PedidoOfertaResponse">
                     <Border>
-                        <Grid RowDefinitions="Auto,Auto,Auto"
-                              ColumnDefinitions="*,Auto"
-                              RowSpacing="5">
-                            <Label Text="{Binding RecetaNombre}"
-                                   TextColor="#5C4033"
-                                   FontSize="18"
-                                   FontAttributes="Bold"/>
-                            <Label Grid.Column="1"
-                                   Text="{Binding Estado}"
-                                   TextColor="#FF6F61"/>
-                            <Label Grid.Row="1"
-                                   Text="{Binding EmpresaNombre}"
-                                   TextColor="#7A5E48"/>
-                            <Label Grid.Row="2"
-                                   Text="{Binding Fecha}"
-                                   TextColor="#7A5E48"
-                                   FontSize="12"/>
-                        </Grid>
+                        <VerticalStackLayout Spacing="5">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
+                                <!-- ¡CORRECCIÓN CLAVE AQUÍ! Definir más filas -->
+                                <Label Grid.Column="0" Text="{Binding RecetaNombre}" TextColor="#5C4033" FontSize="18" FontAttributes="Bold"/>
+                                <Label Grid.Column="1" Text="{Binding Estado}" TextColor="#FF6F61"/>
+
+                                <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding DescripcionOferta}" TextColor="#7A5E48" MaxLines="2" LineBreakMode="TailTruncation"/>
+                                <Label Grid.Row="2" Grid.Column="0" Text="{Binding EmpresaNombreNegocio, StringFormat='Ofrecido por: {0}'}" TextColor="#7A5E48"/>
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Precio, StringFormat='{0:C}'}" TextColor="#5C4033" FontAttributes="Bold"/>
+
+                                <!-- Información de Cliente para Empresas (visible condicionalmente) -->
+                                <Label Grid.Row="3" Grid.Column="0" Text="{Binding ClienteRealizaNombre, StringFormat='Cliente: {0}'}" TextColor="#7A5E48" FontSize="12"
+                                           IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=UserType, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Empresa'}"/>
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding FechaPedido, StringFormat='Fecha Pedido: {0:d}'}" TextColor="#7A5E48" FontSize="12"
+                                           IsVisible="{Binding FechaPedido}"/>
+
+                                <!-- Botones de Acción (en su propia fila dentro del Grid) -->
+                                <HorizontalStackLayout Grid.Row="4" Grid.ColumnSpan="2" HorizontalOptions="End" Margin="0,10,0,0">
+                                    <!-- Botón "Marcar como Entregado" para EMPRESAS: visible si es empresa y pedido pendiente -->
+                                    <Button Text="Entregado"
+                                                Style="{StaticResource ActionButtonStyle}"
+                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=UserType, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Empresa'}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=CompleteOrderCommand}"
+                                                CommandParameter="{Binding .}"
+                                                IsEnabled="{Binding Disponibilidad}"/>
+                                    <!-- Boton activo solo si la oferta es disponible-->
+
+                                    <!-- Botón "Valorar Pedido" para CLIENTES: visible si es cliente y pedido completado y no valorado -->
+                                    <Button Text="Valorar"
+                                                Style="{StaticResource ActionButtonStyle}"
+                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=UserType, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Cliente'}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=ShowRateOrderFormCommand}"
+                                                CommandParameter="{Binding .}"
+                                                IsEnabled="{Binding Estado, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Pedido_Completado'}" />
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <ActivityIndicator IsRunning="{Binding IsBusy}"
-                          IsVisible="{Binding IsBusy}"
-                          Color="#FF6F61"
-                          Grid.Row="1"
-                          HorizontalOptions="Center"
-                          VerticalOptions="Center"/>
+        <!-- Mensaje si no hay pedidos/ofertas -->
+        <Label Grid.Row="1"
+                   Text="{Binding ErrorMessage}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   TextColor="#7A5E48"
+                   FontSize="Medium"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}" />
+
+        <ActivityIndicator Grid.Row="2"
+                               IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="#FF6F61"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+
+        <Label Grid.Row="3"
+                   Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}" />
     </Grid>
 </ContentPage>
+    

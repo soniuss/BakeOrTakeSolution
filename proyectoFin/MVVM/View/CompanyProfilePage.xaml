@@ -1,15 +1,31 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
-             xmlns:converters="clr-namespace:proyectoFin.Converters"
-             x:Class="proyectoFin.MVVM.View.CompanyProfilePage"
-             Title="Perfil de Empresa"
-             BackgroundColor="#FFE7EA">
+                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                 xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
+                 xmlns:converters="clr-namespace:proyectoFin.Converters"
+                 x:Class="proyectoFin.MVVM.View.CompanyProfilePage"
+                 Title="Mi Perfil"
+                 BackgroundColor="#FFE7EA">
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
 
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#5C4033"/>
+        </Style>
+        <Style x:Key="ProfileLabelStyle" TargetType="Label">
+            <Setter Property="TextColor" Value="#7A5E48"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF8FAB"/>
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="HeightRequest" Value="50"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
         <Style TargetType="Border">
             <Setter Property="StrokeShape">
                 <Setter.Value>
@@ -20,13 +36,11 @@
             <Setter Property="BackgroundColor" Value="#FDF1EB"/>
             <Setter Property="Padding" Value="15,0"/>
         </Style>
-
         <Style TargetType="Entry">
             <Setter Property="TextColor" Value="#5C4033"/>
             <Setter Property="PlaceholderColor" Value="#7A5E48"/>
             <Setter Property="HeightRequest" Value="50"/>
         </Style>
-
         <Style TargetType="Editor">
             <Setter Property="TextColor" Value="#5C4033"/>
             <Setter Property="PlaceholderColor" Value="#7A5E48"/>
@@ -37,69 +51,97 @@
 
     <ScrollView>
         <Grid RowDefinitions="Auto,*,Auto,Auto"
-              Padding="20"
-              RowSpacing="20">
+                  Padding="20"
+                  RowSpacing="20">
 
             <Label Text="Perfil de Empresa"
-                   TextColor="#5C4033"
-                   FontSize="32"
-                   FontAttributes="Bold"
-                   Margin="0,0,0,20"/>
+                       TextColor="#5C4033"
+                       FontSize="32"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,20"/>
 
             <VerticalStackLayout Grid.Row="1" Spacing="15">
-                <Label Text="Email"
-                       TextColor="#7A5E48"
-                       FontAttributes="Bold"/>
+                <Label Text="Email" Style="{StaticResource ProfileLabelStyle}"/>
                 <Border>
-                    <Entry Text="{Binding Email}" Keyboard="Email" IsReadOnly="True" />
+                    <Entry Text="{Binding Email}"
+                               Keyboard="Email"
+                               IsReadOnly="True" />
                 </Border>
 
-                <Label Text="Nombre del Negocio"
-                       TextColor="#7A5E48"
-                       FontAttributes="Bold"/>
+                <Label Text="Nombre del Negocio" Style="{StaticResource ProfileLabelStyle}"/>
                 <Border>
-                    <Entry Text="{Binding NombreNegocio}"/>
+                    <Entry Text="{Binding NombreNegocio}"
+                               IsReadOnly="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}" />
                 </Border>
 
-                <Label Text="Ubicación"
-                       TextColor="#7A5E48"
-                       FontAttributes="Bold"/>
+                <Label Text="Ubicación" Style="{StaticResource ProfileLabelStyle}"/>
                 <Border>
-                    <Entry Text="{Binding Ubicacion}"/>
+                    <Entry Text="{Binding Ubicacion}"
+                               IsReadOnly="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}" />
                 </Border>
 
-                <Label Text="Descripción del Negocio"
-                       TextColor="#7A5E48"
-                       FontAttributes="Bold"/>
+                <Label Text="Descripción del Negocio" Style="{StaticResource ProfileLabelStyle}"/>
                 <Border>
-                    <Editor Text="{Binding Descripcion}"/>
+                    <Editor Text="{Binding Descripcion}"
+                                IsReadOnly="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}" />
                 </Border>
             </VerticalStackLayout>
 
-            <Button Grid.Row="2"
-                    Text="Guardar Cambios"
-                    Command="{Binding SaveChangesCommand}"
-                    IsEnabled="{Binding IsNotBusy}"
-                    BackgroundColor="#5C4033"
-                    TextColor="#FFF5E1"
-                    CornerRadius="15"
-                    HeightRequest="55"
-                    FontSize="18"
-                    FontAttributes="Bold"
-                    Margin="0,20,0,0"/>
+            <!-- ¡CORRECCIÓN CLAVE AQUÍ! Nuevo VerticalStackLayout para los botones -->
+            <VerticalStackLayout Grid.Row="2" Spacing="10" Margin="0,20,0,0">
+                <!-- Botón GUARDAR CAMBIOS (visible solo en modo edición) -->
+                <Button Text="Guardar Cambios"
+                            Command="{Binding SaveChangesCommand}"
+                            IsVisible="{Binding IsEditing}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            BackgroundColor="#5C4033"
+                            TextColor="#FFF5E1"
+                            CornerRadius="15"
+                            HeightRequest="55"
+                            FontSize="18"
+                            FontAttributes="Bold"/>
 
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}"
-                               Color="#FF6F61"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
-                               Grid.Row="3" />
-            <Label Text="{Binding ErrorMessage}"
-                   TextColor="#FF6F61"
-                   HorizontalOptions="Center"
-                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}}"
-                   Grid.Row="3"
-                   Margin="0,10,0,0" />
+                <!-- Botón EDITAR PERFIL (visible solo en modo no edición) -->
+                <Button Text="Editar Perfil"
+                            Command="{Binding ToggleEditModeCommand}"
+                            IsVisible="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            BackgroundColor="#FF8FAB"
+                            TextColor="#5C4033"
+                            CornerRadius="15"
+                            HeightRequest="55"
+                            FontSize="18"
+                            FontAttributes="Bold"/>
+
+                <!-- Botón CERRAR SESIÓN -->
+                <Button Text="Cerrar Sesión"
+                            Command="{Binding LogoutCommand}"
+                            BackgroundColor="#FF6F61"
+                            TextColor="#FFF5E1"
+                            CornerRadius="15"
+                            HeightRequest="55"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            Margin="0,20,0,0" />
+            </VerticalStackLayout>
+
+            <!-- Indicadores de estado y errores -->
+            <ActivityIndicator Grid.Row="3"
+                                   IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="#FF6F61"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+
+            <Label Grid.Row="3"
+                       Text="{Binding ErrorMessage}"
+                       TextColor="Red"
+                       HorizontalOptions="Center"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}"
+                       Margin="0,10,0,0"/>
+
         </Grid>
     </ScrollView>
 </ContentPage>
+    

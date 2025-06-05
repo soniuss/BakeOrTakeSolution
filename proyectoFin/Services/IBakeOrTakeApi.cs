@@ -1,6 +1,7 @@
 ﻿using Domain.Model; // Necesario para Receta (en los cuerpos de POST/PUT) y otras entidades
 using Domain.Model.ApiRequests; // ¡IMPORTANTE! Para RecetaResponse
 using Domain.Model.ApiResponses;
+using Microsoft.AspNetCore.Mvc;
 using Refit;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -64,21 +65,40 @@ namespace proyectoFin.Services
         Task<ApiResponse<Empresa>> UpdateEmpresaAsync(int id, [Body] Empresa updateData);
 
         // --- Métodos para Pedidos/Ofertas ---
-        // Obtener pedidos realizados por un cliente (si devuelve la entidad completa PedidoOferta, está bien)
-        [Get("/api/PedidosOfertas/ByClient/{id_cliente}")]
-        Task<ApiResponse<List<PedidoOferta>>> GetClientOrdersAsync(int id_cliente);
 
         // Obtener ofertas para una receta específica
         [Get("/api/PedidosOfertas/ByReceta/{id_receta}")]
-        Task<ApiResponse<List<PedidoOfertaResponse>>> GetOffersByRecetaAsync(int id_receta); // ¡NUEVO!
+        Task<ApiResponse<List<PedidoOfertaResponse>>> GetOffersByRecetaAsync(int id_receta);
 
         // Crear una oferta (por una Empresa)
         [Post("/api/PedidosOfertas/offer/{id_receta}")]
-        Task<ApiResponse<PedidoOfertaResponse>> CreateOfferAsync(int id_receta, [Body] OfertaRequest request); // ¡NUEVO!
+        Task<ApiResponse<PedidoOfertaResponse>> CreateOfferAsync(int id_receta, [Body] OfertaRequest request);
 
         // Realizar un pedido (por un Cliente)
         [Post("/api/PedidosOfertas/order")]
-        Task<ApiResponse<PedidoOfertaResponse>> PlaceOrderAsync([Body] PedidoRequest request); // ¡NUEVO!
+        Task<ApiResponse<PedidoOfertaResponse>> PlaceOrderAsync([Body] PedidoRequest request);
+
+        // Obtener pedidos realizados por un cliente
+        [Get("/api/PedidosOfertas/ByClient/{id_cliente}")]
+        Task<ApiResponse<List<PedidoOfertaResponse>>> GetClientOrdersAsync(int id_cliente); // ¡CAMBIO AQUÍ!
+
+        // Obtener ofertas y pedidos de una empresa
+        [Get("/api/PedidosOfertas/ByCompany/{id_empresa}")]
+        Task<ApiResponse<List<PedidoOfertaResponse>>> GetCompanyOffersAsync(int id_empresa); // ¡CAMBIO AQUÍ! (Y añadir si faltaba)
+
+        // NUEVO: Marcar un pedido como completado (por Empresa)
+        [HttpPut("/api/PedidosOfertas/complete/{id_pedido_oferta}")]
+        Task<ApiResponse<object>> CompleteOrderAsync(int id_pedido_oferta); // Devuelve 204 No Content
+
+        // NUEVO: Valorar un pedido completado (por Cliente)
+        [HttpPut("/api/PedidosOfertas/rate/{id_pedido_oferta}")]
+        Task<ApiResponse<object>> RateOrderAsync(int id_pedido_oferta, [Body] ValoracionRequest request); // Devuelve 204 No Content
+        
+        // NUEVO: Eliminar una oferta (por Empresa)
+        [HttpDelete("/api/PedidosOfertas/{id_pedido_oferta}")]
+        Task<ApiResponse<object>> DeleteOfferAsync(int id_pedido_oferta); // Devuelve 204 No Content
 
     }
+
 }
+

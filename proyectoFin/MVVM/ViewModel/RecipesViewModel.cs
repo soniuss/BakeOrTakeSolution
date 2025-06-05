@@ -4,20 +4,19 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using proyectoFin.Services;
-using System.Linq;
 using Refit;
 using System;
-using Domain.Model.ApiResponses; // Para RecetaResponse
-using Microsoft.Maui.Storage; // Para SecureStorage
+using Microsoft.Maui.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using proyectoFin.MVVM.View; // Para IServiceProvider
+using proyectoFin.MVVM.View; // Para RecetaDetallePage
+using Domain.Model.ApiResponses; // Para RecetaResponse
 
 namespace proyectoFin.MVVM.ViewModel
 {
     public partial class RecipesViewModel : ObservableObject
     {
         [ObservableProperty]
-        private ObservableCollection<RecetaResponse> recipes;
+        private ObservableCollection<RecetaItemViewModel> recipes;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -28,23 +27,38 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private string _errorMessage;
 
-
         public IRelayCommand LoadRecipesCommand { get; }
-        public IAsyncRelayCommand<RecetaResponse> SelectRecipeCommand { get; }
+        public IAsyncRelayCommand<RecetaItemViewModel> SelectRecipeCommand { get; }
 
         private readonly IBakeOrTakeApi _apiService;
-        private readonly IServiceProvider _serviceProvider; // Necesario para la navegación
+        private readonly IServiceProvider _serviceProvider;
 
-        public RecipesViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider) // Inyectar IServiceProvider
+        // ¡CORRECCIÓN CLAVE AQUÍ! SelectedItem se declara con [ObservableProperty]
+        // y el setter automático se encargará de OnSelectedItemChanged.
+        [ObservableProperty]
+        private RecetaItemViewModel _selectedItem;
+
+        // ¡ELIMINAR LA IMPLEMENTACIÓN MANUAL DE OnSelectedItemChanged!
+        // El generador de código ya crea un método parcial vacío o una implementación básica.
+        // partial void OnSelectedItemChanged(RecetaItemViewModel value)
+        // {
+        //    foreach (var item in Recipes)
+        //        item.IsSelected = false;
+        //    if (value != null)
+        //        value.IsSelected = true;
+        // }
+
+
+        public RecipesViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
-            _serviceProvider = serviceProvider; // Asignar el serviceProvider
-            Recipes = new ObservableCollection<RecetaResponse>();
+            _serviceProvider = serviceProvider;
+            Recipes = new ObservableCollection<RecetaItemViewModel>();
 
             LoadRecipesCommand = new AsyncRelayCommand(LoadRecipesAsync);
-            SelectRecipeCommand = new AsyncRelayCommand<RecetaResponse>(OnRecipeSelected);
+            SelectRecipeCommand = new AsyncRelayCommand<RecetaItemViewModel>(OnRecipeSelected);
 
-            _ = LoadRecipesAsync(); // Iniciar la carga al construir el ViewModel
+            _ = LoadRecipesAsync();
         }
 
         private async Task LoadRecipesAsync()
@@ -89,7 +103,8 @@ namespace proyectoFin.MVVM.ViewModel
                     Recipes.Clear();
                     foreach (var recetaResponse in response.Content)
                     {
-                        Recipes.Add(recetaResponse);
+                        // Envolver cada RecetaResponse en RecetaItemViewModel
+                        Recipes.Add(new RecetaItemViewModel(recetaResponse));
                     }
                 }
                 else
@@ -115,37 +130,36 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        private async Task OnRecipeSelected(RecetaResponse selectedReceta)
+        private async Task OnRecipeSelected(RecetaItemViewModel selectedItem)
         {
-            if (selectedReceta != null)
-            {
-                Console.WriteLine($"Receta seleccionada: {selectedReceta.Nombre}");
-                // await Application.Current.MainPage.DisplayAlert("Receta Seleccionada", $"Has seleccionado: {selectedReceta.Nombre}", "OK"); // Eliminar esta línea
+            if (selectedItem?.Receta == null)
+                return;
 
-                // ¡CORRECCIÓN CLAVE AQUÍ! Implementar la navegación a RecetaDetallePage
-                if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
+            var selectedReceta = selectedItem.Receta;
+
+            // Lógica de selección visual para todos los ítems
+            foreach (var item in Recipes)
+            {
+                item.IsSelected = (item == selectedItem); // Marcar solo el ítem actual como seleccionado
+            }
+
+            // Navegación a RecetaDetallePage
+            if (Application.Current.MainPage is NavigationPage mainNavPage &&
+                mainNavPage.CurrentPage is TabbedPage tabbedPage &&
+                tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
+            {
+                var recetaDetallePage = _serviceProvider.GetService<RecetaDetallePage>();
+                if (recetaDetallePage?.BindingContext is RecetaDetalleViewModel detalleViewModel)
                 {
-                    var recetaDetallePage = _serviceProvider.GetService<RecetaDetallePage>();
-                    if (recetaDetallePage != null)
-                    {
-                        if (recetaDetallePage.BindingContext is RecetaDetalleViewModel detalleViewModel)
-                        {
-                            detalleViewModel.RecetaId = selectedReceta.IdReceta; // Pasar el ID de la receta
-                            await detalleViewModel.LoadRecetaCommand.ExecuteAsync(null); // Cargar los detalles
-                        }
-                        await currentTabPageNav.PushAsync(recetaDetallePage); // Navegar
-                    }
-                    else
-                    {
-                        Console.WriteLine("Error: RecetaDetallePage no pudo ser resuelta.");
-                        await Application.Current.MainPage.DisplayAlert("Error de navegación", "No se pudo cargar la página de detalles de la receta.", "OK");
-                    }
+                    detalleViewModel.RecetaId = selectedReceta.IdReceta;
+                    await detalleViewModel.LoadRecetaCommand.ExecuteAsync(null);
                 }
-                else
-                {
-                    Console.WriteLine("Error: Contexto de navegación inesperado para OnRecipeSelected.");
-                    await Application.Current.MainPage.DisplayAlert("Error", "Contexto de navegación no compatible.", "OK");
-                }
+
+                await currentTabPageNav.PushAsync(recetaDetallePage);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Contexto de navegación no compatible.", "OK");
             }
         }
     }

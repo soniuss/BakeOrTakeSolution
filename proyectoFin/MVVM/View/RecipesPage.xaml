@@ -2,15 +2,20 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
-             xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
-             x:DataType="viewmodel:RecipesViewModel"
+             xmlns:converters="clr-namespace:proyectoFin.Converters"
              x:Class="proyectoFin.MVVM.View.RecipesPage"
+             x:DataType="viewmodel:RecipesViewModel"
              Title="Explorar"
              BackgroundColor="#FFE7EA">
-    <!-- Color de fondo de la página -->
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:SelectionToBackgroundConverter x:Key="SelectionToBackgroundConverter" />
+            <converters:SelectionToTextColorConverter x:Key="SelectionToTextColorConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <VerticalStackLayout BackgroundColor="#FFE7EA">
-        <!-- ¡CORRECCIÓN CLAVE AQUÍ! Asegurar el color de fondo del StackLayout -->
         <Label Text="¡Descubre deliciosas recetas!"
                FontSize="Large"
                HorizontalOptions="Center"
@@ -18,29 +23,24 @@
 
         <CollectionView ItemsSource="{Binding Recipes}"
                         SelectionMode="Single"
+                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                         SelectionChangedCommand="{Binding SelectRecipeCommand}"
                         SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}"
                         VerticalOptions="FillAndExpand">
-            <!-- Esto ya debería manejar el scroll -->
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="modelResponses:RecetaResponse">
-                    <Frame Margin="10" Padding="15" CornerRadius="10" HasShadow="True">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Nombre}"
-                                   FontSize="Medium"
-                                   FontAttributes="Bold"
-                                   TextColor="#5C4033" />
-                            <Label Text="{Binding Descripcion}"
-                                   FontSize="Small"
-                                   TextColor="#7A5E48"
-                                   MaxLines="1"
-                                   LineBreakMode="TailTruncation" />
-                            <Image Source="{Binding ImagenUrl}"
-                                   Aspect="AspectFill"
-                                   HeightRequest="100"
-                                   Margin="0,5,0,0" />
-                        </VerticalStackLayout>
-                    </Frame>
+                <DataTemplate x:DataType="viewmodel:RecetaItemViewModel">
+                    <Border Margin="10"
+                            Padding="15"
+                            Stroke="#5C4033"
+                            StrokeThickness="1"
+                            BackgroundColor="{Binding IsSelected, Converter={StaticResource SelectionToBackgroundConverter}}">
+                        <Label Text="{Binding Nombre}"
+                               FontSize="Medium"
+                               FontAttributes="Bold"
+                               TextColor="{Binding IsSelected, Converter={StaticResource SelectionToTextColorConverter}}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

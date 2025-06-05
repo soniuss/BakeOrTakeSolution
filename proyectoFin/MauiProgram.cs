@@ -68,8 +68,12 @@ namespace proyectoFin
             builder.Services.AddTransient<EmpresaTabsPage>();
 
             // Registrar Converters
-            builder.Services.AddSingleton<StringToBoolConverter>();
+            builder.Services.AddSingleton<Converters.BoolToStringConverter>();
             builder.Services.AddSingleton<BoolToColorConverter>();
+            builder.Services.AddSingleton<SelectionToBackgroundConverter>();
+            builder.Services.AddSingleton<SelectionToTextColorConverter>();
+            builder.Services.AddSingleton<InverseBoolConverter>();
+
 
             return builder.Build();
         }
