@@ -86,10 +86,6 @@
             <Label Text="Pasos:" FontAttributes="Bold" TextColor="#7A5E48"/>
             <Label Text="{Binding Receta.Pasos}" TextColor="#5C4033"/>
 
-            <Label Text="Creador:" FontAttributes="Bold" TextColor="#7A5E48"/>
-            <Label Text="{Binding Receta.ClienteCreadorNombre}" TextColor="#5C4033"/>
-            <Label Text="{Binding Receta.ClienteCreadorEmail}" TextColor="#5C4033" FontSize="Small"/>
-
             <!-- Botón de Editar Receta (visible solo si la receta es del usuario logueado) -->
             <Button Text="Editar Receta"
                     Command="{Binding EditRecipeCommand}"

@@ -13,7 +13,6 @@
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
-        <!-- Asumo que tienes este conversor -->
 
         <Style TargetType="Border">
             <Setter Property="StrokeShape">
@@ -39,7 +38,6 @@
             <Setter Property="BackgroundColor" Value="#FF6F61"/>
             <Setter Property="TextColor" Value="#FFF5E1"/>
         </Style>
-        <!-- Estilos para el texto de estado -->
         <Style x:Key="StatusLabelStyle" TargetType="Label">
             <Setter Property="FontAttributes" Value="Bold" />
             <Setter Property="FontSize" Value="Small" />
@@ -68,7 +66,6 @@
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
                                 <Label Grid.Column="0" Text="{Binding RecetaNombre}" TextColor="#5C4033" FontSize="18" FontAttributes="Bold"/>
 
-                                <!-- Label de Estado del Pedido -->
                                 <Label Grid.Column="1" Style="{StaticResource StatusLabelStyle}">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding Estado}" Value="Oferta">
@@ -107,12 +104,13 @@
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=CompleteOrderCommand}"
                                             CommandParameter="{Binding .}">
                                         <Button.Triggers>
-                                            <!-- Visible si es Empresa Y el estado es Pedido_Pendiente -->
+                                            <!-- OCULTAR si NO es empresa -->
                                             <DataTrigger TargetType="Button"
                                                          Binding="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsCompanyUser}"
                                                          Value="False">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
+                                            <!-- OCULTAR si el estado NO es Pedido_Pendiente -->
                                             <DataTrigger TargetType="Button"
                                                          Binding="{Binding Estado}"
                                                          Value="Pedido_Completado">
@@ -132,12 +130,13 @@
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=ShowRateOrderFormCommand}"
                                             CommandParameter="{Binding .}">
                                         <Button.Triggers>
-                                            <!-- Visible si es Cliente Y el estado es Pedido_Completado Y Puntuacion es NULL -->
+                                            <!-- OCULTAR si NO es cliente -->
                                             <DataTrigger TargetType="Button"
                                                          Binding="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsClientUser}"
                                                          Value="False">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
+                                            <!-- OCULTAR si el estado NO es Pedido_Completado -->
                                             <DataTrigger TargetType="Button"
                                                          Binding="{Binding Estado}"
                                                          Value="Pedido_Pendiente">
@@ -148,18 +147,10 @@
                                                          Value="Oferta">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
+                                            <!-- OCULTAR si Puntuacion tiene valor (ya ha sido valorado) -->
                                             <DataTrigger TargetType="Button"
-                                                         Binding="{Binding Puntuacion}"
-                                                         Value="{x:Null}">
-                                                <!-- If Puntuacion IS null, we want it to be visible. This trigger fires if Puntuacion is null.
-                                                     If Puntuacion is NOT null, it means it's already rated, so it should be hidden. -->
-                                                <!-- To hide if Puntuacion is NOT null: -->
-                                                <Setter Property="IsVisible" Value="True" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Button"
-                                                         Binding="{Binding Puntuacion, Converter={StaticResource InverseBoolConverter}}"
-                                                         Value="False">
-                                                <!-- If Puntuacion is NOT null, InverseBoolConverter will be false -->
+                                                         Binding="{Binding Puntuacion.HasValue}"
+                                                         Value="True">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Button.Triggers>
