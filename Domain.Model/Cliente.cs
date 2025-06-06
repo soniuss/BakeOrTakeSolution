@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace Domain.Model
     {
         public int id_cliente { get; set; } // Clave Primaria
         public string email { get; set; }
+        [ValidateNever]
         public string password_hash { get; set; }
         public DateTime fecha_registro { get; set; }
         public string nombre { get; set; }
