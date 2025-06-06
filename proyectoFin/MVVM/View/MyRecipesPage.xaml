@@ -2,13 +2,18 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodel="clr-namespace:proyectoFin.MVVM.ViewModel"
-             xmlns:model="clr-namespace:Domain.Model;assembly=Domain.Model"
+             xmlns:modelResponses="clr-namespace:Domain.Model.ApiResponses;assembly=Domain.Model"
+             xmlns:converters="clr-namespace:proyectoFin.Converters"
              x:DataType="viewmodel:MyRecipesViewModel"
              x:Class="proyectoFin.MVVM.View.MyRecipesPage"
              Title="Mis Recetas"
              BackgroundColor="#FFE7EA">
 
     <ContentPage.Resources>
+        <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
+
         <Style TargetType="Border">
             <Setter Property="StrokeShape">
                 <Setter.Value>
@@ -20,9 +25,22 @@
             <Setter Property="Padding" Value="15"/>
             <Setter Property="Margin" Value="0,5"/>
         </Style>
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF8FAB"/>
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="HeightRequest" Value="40"/>
+            <Setter Property="FontSize" Value="Small"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5,0"/>
+        </Style>
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="BackgroundColor" Value="#FF6F61"/>
+            <Setter Property="TextColor" Value="#FFF5E1"/>
+        </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,*,Auto"
+    <Grid RowDefinitions="Auto,*,Auto,Auto"
           Padding="20">
         <Label Text="Mis Recetas Creadas"
                TextColor="#5C4033"
@@ -34,21 +52,33 @@
                         ItemsSource="{Binding MyRecipes}"
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="model:Receta">
+                <DataTemplate x:DataType="modelResponses:RecetaResponse">
                     <Border>
                         <VerticalStackLayout Spacing="5">
-                            <Label Text="{Binding nombre}" FontSize="Medium" FontAttributes="Bold" TextColor="#5C4033" />
-                            <Label Text="{Binding descripcion}" FontSize="Small" TextColor="#7A5E48" MaxLines="2" LineBreakMode="TailTruncation" />
-                            <Image Source="{Binding imagenUrl}"
+                            <!-- ¡CORRECCIÓN CLAVE AQUÍ! Usar Nombre (PascalCase) -->
+                            <Label Text="{Binding Nombre}"
+                                   FontSize="Medium"
+                                   FontAttributes="Bold"
+                                   TextColor="#5C4033" />
+                            <!-- Si quieres la descripción o imagen, también usa PascalCase: -->
+                            <!--
+                            <Label Text="{Binding Descripcion}"
+                                   FontSize="Small"
+                                   TextColor="#7A5E48"
+                                   MaxLines="2"
+                                   LineBreakMode="TailTruncation" />
+                            <Image Source="{Binding ImagenUrl}"
                                    Aspect="AspectFill"
                                    HeightRequest="150"
                                    Margin="0,10,0,0" />
+                            -->
 
                             <HorizontalStackLayout HorizontalOptions="End" Spacing="10" Margin="0,10,0,0">
                                 <Button Text="Editar"
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyRecipesViewModel}}, Path=EditRecipeCommand}"
                                         CommandParameter="{Binding .}"
                                         BackgroundColor="#FF8FAB"
+                                        HeightRequest="30"
                                         TextColor="#5C4033"
                                         CornerRadius="10"
                                         FontSize="Small"
@@ -57,6 +87,7 @@
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyRecipesViewModel}}, Path=DeleteRecipeCommand}"
                                         CommandParameter="{Binding .}"
                                         BackgroundColor="#FF6F61"
+                                        HeightRequest="30"
                                         TextColor="White"
                                         CornerRadius="10"
                                         FontSize="Small"
@@ -68,6 +99,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
+        <!-- Botón "Añadir Nueva Receta" al final de la página -->
         <Button Grid.Row="2"
                 Text="Añadir Nueva Receta"
                 Command="{Binding AddNewRecipeCommand}"
@@ -80,18 +112,17 @@
                 FontAttributes="Bold"
                 Margin="0,20,0,0"/>
 
-        <ActivityIndicator IsRunning="{Binding IsBusy}"
+        <ActivityIndicator Grid.Row="3"
+                           IsRunning="{Binding IsBusy}"
                            IsVisible="{Binding IsBusy}"
                            Color="#FF6F61"
-                           Grid.Row="1"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"/>
 
-        <Label Text="{Binding ErrorMessage}"
+        <Label Grid.Row="3"
+               Text="{Binding ErrorMessage}"
                TextColor="Red"
                HorizontalOptions="Center"
-               IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}"
-               Grid.Row="2"
-               Margin="0,10,0,0"/>
+               IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='True'}" />
     </Grid>
 </ContentPage>

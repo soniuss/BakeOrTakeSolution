@@ -32,14 +32,21 @@ namespace proyectoFin.MVVM.View
                 IconImageSource = "recetas.png"
             });
 
-            // Pestaña 3: Favoritos
+            // Pestaña 3: Mis Pedidos (MyOrdersPage) - ¡NUEVA PESTAÑA PARA CLIENTE!
+            Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<MyOrdersPage>())
+            {
+                Title = "Mis Pedidos",
+                IconImageSource = "pedido.png" // Reutilizamos el icono de pedidos
+            });
+
+            // Pestaña 4: Favoritos
             Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<FavoritesPage>())
             {
                 Title = "Favoritos",
                 IconImageSource = "favorito.png"
             });
 
-            // Pestaña 4: Mi Perfil
+            // Pestaña 5: Mi Perfil
             Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<ProfilePage>())
             {
                 Title = "Mi Perfil",

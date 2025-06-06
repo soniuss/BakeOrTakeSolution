@@ -12,7 +12,8 @@
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
-        <!-- NO NECESITAMOS STRINGTOBOOLCONVERTER AQUÍ -->
+        <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
+        <!-- Asumo que tienes este conversor -->
 
         <Style TargetType="Border">
             <Setter Property="StrokeShape">
@@ -46,7 +47,6 @@
             <Setter Property="VerticalOptions" Value="Center" />
             <Setter Property="Margin" Value="0,0,5,0" />
             <Setter Property="TextColor" Value="#7A5E48" />
-            <!-- Color por defecto (Marrón suave) -->
         </Style>
     </ContentPage.Resources>
 
@@ -68,26 +68,22 @@
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
                                 <Label Grid.Column="0" Text="{Binding RecetaNombre}" TextColor="#5C4033" FontSize="18" FontAttributes="Bold"/>
 
-                                <!-- ¡CORRECCIÓN CLAVE AQUÍ! Aplicar DataTriggers para Texto y Color -->
+                                <!-- Label de Estado del Pedido -->
                                 <Label Grid.Column="1" Style="{StaticResource StatusLabelStyle}">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding Estado}" Value="Oferta">
                                             <Setter Property="Text" Value="Oferta" />
                                             <Setter Property="TextColor" Value="#FF8FAB" />
-                                            <!-- Rosa chicle -->
                                         </DataTrigger>
                                         <DataTrigger TargetType="Label" Binding="{Binding Estado}" Value="Pedido_Pendiente">
                                             <Setter Property="Text" Value="Pendiente" />
                                             <Setter Property="TextColor" Value="#5C4033" />
-                                            <!-- Marrón chocolate -->
                                         </DataTrigger>
                                         <DataTrigger TargetType="Label" Binding="{Binding Estado}" Value="Pedido_Completado">
                                             <Setter Property="Text" Value="Entregado" />
                                             <Setter Property="TextColor" Value="Green" />
-                                            <!-- Verde para Entregado, puedes usar un color de tu paleta si tienes uno adecuado -->
                                         </DataTrigger>
                                     </Label.Triggers>
-                                    <!-- Si ningún Trigger coincide, el Label Text por defecto será el valor del Binding -->
                                     <Label.Text>
                                         <Binding Path="Estado"/>
                                     </Label.Text>
@@ -105,26 +101,74 @@
 
                                 <!-- Botones de Acción -->
                                 <HorizontalStackLayout Grid.Row="4" Grid.ColumnSpan="2" HorizontalOptions="End" Margin="0,10,0,0">
-                                    <!-- Botón "Marcar como Entregado" para EMPRESAS: visible si es empresa y pedido pendiente -->
+                                    <!-- Botón "Marcar como Entregado" para EMPRESAS -->
                                     <Button Text="Entregado"
                                             Style="{StaticResource ActionButtonStyle}"
-                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsCompanyUser}"
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=CompleteOrderCommand}"
-                                            CommandParameter="{Binding .}"
-                                            IsEnabled="{Binding Estado, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Pedido_Pendiente'}"/>
+                                            CommandParameter="{Binding .}">
+                                        <Button.Triggers>
+                                            <!-- Visible si es Empresa Y el estado es Pedido_Pendiente -->
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsCompanyUser}"
+                                                         Value="False">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Estado}"
+                                                         Value="Pedido_Completado">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Estado}"
+                                                         Value="Oferta">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
 
-                                    <!-- Botón "Valorar Pedido" para CLIENTES: visible si es cliente y pedido completado y no valorado -->
+                                    <!-- Botón "Valorar Pedido" para CLIENTES -->
                                     <Button Text="Valorar"
                                             Style="{StaticResource ActionButtonStyle}"
-                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsClientUser}"
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=ShowRateOrderFormCommand}"
-                                            CommandParameter="{Binding .}"
-                                            IsEnabled="{Binding Estado, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Pedido_Completado'}" />
+                                            CommandParameter="{Binding .}">
+                                        <Button.Triggers>
+                                            <!-- Visible si es Cliente Y el estado es Pedido_Completado Y Puntuacion es NULL -->
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyOrdersViewModel}}, Path=IsClientUser}"
+                                                         Value="False">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Estado}"
+                                                         Value="Pedido_Pendiente">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Estado}"
+                                                         Value="Oferta">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Puntuacion}"
+                                                         Value="{x:Null}">
+                                                <!-- If Puntuacion IS null, we want it to be visible. This trigger fires if Puntuacion is null.
+                                                     If Puntuacion is NOT null, it means it's already rated, so it should be hidden. -->
+                                                <!-- To hide if Puntuacion is NOT null: -->
+                                                <Setter Property="IsVisible" Value="True" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Button"
+                                                         Binding="{Binding Puntuacion, Converter={StaticResource InverseBoolConverter}}"
+                                                         Value="False">
+                                                <!-- If Puntuacion is NOT null, InverseBoolConverter will be false -->
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
                                 </HorizontalStackLayout>
 
                                 <!-- Sección de Valoración (si el pedido ya está valorado) -->
                                 <VerticalStackLayout Grid.Row="5" Grid.ColumnSpan="2" Spacing="2" Margin="0,10,0,0"
-                                                     IsVisible="{Binding Puntuacion}">
+                                                     IsVisible="{Binding Puntuacion, Converter={StaticResource InverseBoolConverter}, ConverterParameter='False'}">
                                     <Label Text="{Binding Puntuacion, StringFormat='Valoración: {0} / 5'}" FontAttributes="Bold" TextColor="#5C4033"/>
                                     <Label Text="{Binding Comentario}" TextColor="#7A5E48" IsVisible="{Binding Comentario, Converter={StaticResource StringIsNullOrEmptyConverter}, ConverterParameter='False'}"/>
                                 </VerticalStackLayout>
