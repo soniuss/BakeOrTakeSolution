@@ -37,7 +37,7 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private string _userType;
         public bool IsClientUser => UserType == "Cliente";
-        public bool IsCompanyUser => UserType == "Empresa";
+        public bool IsCompanyUser => UserType?.ToLower() == "empresa";
 
         [ObservableProperty]
         private bool _isRecipeOwnedByUser;
@@ -84,6 +84,7 @@ namespace proyectoFin.MVVM.ViewModel
             ErrorMessage = string.Empty;
             IsRecipeOwnedByUser = false;
             UserType = await SecureStorage.GetAsync("user_type");
+            OnPropertyChanged(nameof(IsCompanyUser));
 
             try
             {

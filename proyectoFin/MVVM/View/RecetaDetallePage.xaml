@@ -10,13 +10,10 @@
              BackgroundColor="#FFE7EA">
 
     <ContentPage.Resources>
-        <!-- ¡ATENCIÓN A ESTAS DECLARACIONES! DEBEN COINCIDIR CON TUS ARCHIVOS DE CONVERTER.CS -->
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
-        <!-- Los conversores de Selección solo son necesarios si se usan en esta página, pero los mantengo si los tienes globalmente -->
-        <converters:SelectionToBackgroundConverter x:Key="SelectionToBackgroundConverter" />
-        <converters:SelectionToTextColorConverter x:Key="SelectionToTextColorConverter" />
+        <!-- No necesitamos declarar StringToBoolConverter aquí -->
 
         <Style TargetType="Label">
             <Setter Property="TextColor" Value="#5C4033"/>
@@ -167,8 +164,7 @@
             <!-- Separador -->
 
             <!-- Formulario para HACER UNA OFERTA (visible solo para empresas) -->
-            <VerticalStackLayout IsVisible="{Binding IsCompanyUser}" Spacing="15" BackgroundColor="#FFE7EA" Padding="0">
-                <!-- ¡ATENCIÓN AL BackgroundColor y Padding! -->
+            <VerticalStackLayout IsVisible="{Binding IsCompanyUser}" Spacing="15">
                 <Label Text="Crear Nueva Oferta"
                        FontSize="Medium"
                        FontAttributes="Bold"

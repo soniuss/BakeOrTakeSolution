@@ -41,9 +41,12 @@ namespace proyectoFin.Services
         Task<ApiResponse<List<RecetaResponse>>> GetRecetasByCompanyAsync(int id_empresa);
 
         // --- Métodos para Cliente (Perfil) ---
-        // ¡CORRECCIÓN CLAVE! Este método faltaba o estaba mal.
         [Get("/api/Clientes/{id}")]
         Task<ApiResponse<Cliente>> GetClienteByIdAsync(int id);
+
+       //Actualizar perfil de cliente por ID
+        [Put("/api/Clientes/{id}")]
+        Task<ApiResponse<object>> UpdateClienteAsync(int id, [Body] Cliente updateData);
 
         // --- Métodos para Empresa (Perfil) ---
         // Este ya debería estar, pero lo reconfirmo.

@@ -95,5 +95,65 @@ namespace Persistence.ApiRest.Controllers
             // Por ahora, asumimos que Cliente se puede serializar directamente.
             return Ok(cliente);
         }
+        // PUT /api/Clientes/{id}
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Cliente")] // Solo un cliente autenticado puede actualizar su propio perfil
+        public async Task<IActionResult> UpdateCliente(int id, [FromBody] Cliente updateData)
+        {
+            if (id != updateData.id_cliente)
+            {
+                return BadRequest("El ID de la ruta no coincide con el ID del cliente en el cuerpo.");
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int idClienteActual))
+            {
+                return Unauthorized("No se pudo identificar al cliente actual.");
+            }
+
+            // Verificar que el ID solicitado coincide con el ID del token
+            if (idClienteActual != id)
+            {
+                return Forbid("No tienes permiso para actualizar el perfil de otro cliente.");
+            }
+
+            var existingCliente = await _context.Clientes.FindAsync(id);
+            if (existingCliente == null)
+            {
+                return NotFound();
+            }
+
+            // Actualizar solo los campos permitidos desde el cliente
+            existingCliente.nombre = updateData.nombre;
+            existingCliente.ubicacion = updateData.ubicacion;
+            // El email y password_hash NO se actualizan aquí directamente
+            // El email debería ser un endpoint de cambio de email
+            // El password_hash debería ser un endpoint de cambio de contraseña
+            // existingCliente.email = updateData.email; // No actualizar aquí
+            // existingCliente.password_hash = updateData.password_hash; // ¡NUNCA actualizar aquí!
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Clientes.Any(c => c.id_cliente == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar cliente: {ex.Message}");
+                return StatusCode(500, "Error interno del servidor al actualizar el cliente.");
+            }
+
+            return NoContent(); // 204 No Content para actualización exitosa
+        }
     }
 }
