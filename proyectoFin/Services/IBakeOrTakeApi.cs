@@ -72,17 +72,17 @@ namespace proyectoFin.Services
         [Get("/api/PedidosOfertas/ByCompany/{id_empresa}")]
         Task<ApiResponse<List<PedidoOfertaResponse>>> GetCompanyOffersAsync(int id_empresa);
 
-        [HttpPut("/api/PedidosOfertas/complete/{id_pedido_oferta}")]
+        [Put("/api/PedidosOfertas/complete/{id_pedido_oferta}")]
         Task<ApiResponse<object>> CompleteOrderAsync(int id_pedido_oferta);
 
-        [HttpPut("/api/PedidosOfertas/rate/{id_pedido_oferta}")]
+        [Put("/api/PedidosOfertas/rate/{id_pedido_oferta}")]
         Task<ApiResponse<object>> RateOrderAsync(int id_pedido_oferta, [Body] ValoracionRequest request);
 
-        // ¡CORRECCIÓN CLAVE! Este método faltaba o estaba mal.
         [Get("/api/Favoritos/ByClient/{id_cliente}")]
         Task<ApiResponse<List<RecetaResponse>>> GetFavoritosByClientAsync(int id_cliente);
 
-        [HttpDelete("/api/PedidosOfertas/{id_pedido_oferta}")]
+        [Delete("/api/PedidosOfertas/{id_pedido_oferta}")]
         Task<ApiResponse<object>> DeleteOfferAsync(int id_pedido_oferta);
+
     }
 }
