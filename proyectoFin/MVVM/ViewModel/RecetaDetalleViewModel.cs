@@ -35,12 +35,18 @@ namespace proyectoFin.MVVM.ViewModel
         private string _errorMessage;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsClientUser))]
+        [NotifyPropertyChangedFor(nameof(IsCompanyUser))]
         private string _userType;
         public bool IsClientUser => UserType == "Cliente";
-        public bool IsCompanyUser => UserType?.ToLower() == "empresa";
+        public bool IsCompanyUser => UserType == "Empresa";
 
         [ObservableProperty]
         private bool _isRecipeOwnedByUser;
+
+        // ¡NUEVO! Propiedad para el estado de favorito
+        [ObservableProperty]
+        private bool _isFavorite;
 
         [ObservableProperty]
         private ObservableCollection<PedidoOfertaResponse> _offers;
@@ -59,7 +65,8 @@ namespace proyectoFin.MVVM.ViewModel
         public IAsyncRelayCommand<PedidoOfertaResponse> PlaceOrderCommand { get; }
         public IAsyncRelayCommand EditRecipeCommand { get; }
         public IAsyncRelayCommand LoadOffersCommand { get; }
-        public IAsyncRelayCommand<PedidoOfertaResponse> DeleteOfferCommand { get; } // ¡NUEVO! Comando para eliminar oferta
+        public IAsyncRelayCommand<PedidoOfertaResponse> DeleteOfferCommand { get; }
+        public IAsyncRelayCommand ToggleFavoriteCommand { get; } // ¡NUEVO! Comando para favorito
 
         public RecetaDetalleViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
@@ -73,7 +80,8 @@ namespace proyectoFin.MVVM.ViewModel
             PlaceOrderCommand = new AsyncRelayCommand<PedidoOfertaResponse>(PlaceOrder);
             EditRecipeCommand = new AsyncRelayCommand(EditRecipe);
             LoadOffersCommand = new AsyncRelayCommand(LoadOffers);
-            DeleteOfferCommand = new AsyncRelayCommand<PedidoOfertaResponse>(DeleteOffer); // ¡NUEVO! Inicializar comando
+            DeleteOfferCommand = new AsyncRelayCommand<PedidoOfertaResponse>(DeleteOffer);
+            ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavorite); // ¡NUEVO! Inicializar comando
         }
 
         private async Task LoadReceta()
@@ -83,8 +91,8 @@ namespace proyectoFin.MVVM.ViewModel
             IsBusy = true;
             ErrorMessage = string.Empty;
             IsRecipeOwnedByUser = false;
+            IsFavorite = false; // Resetear estado de favorito
             UserType = await SecureStorage.GetAsync("user_type");
-            OnPropertyChanged(nameof(IsCompanyUser));
 
             try
             {
@@ -97,9 +105,17 @@ namespace proyectoFin.MVVM.ViewModel
                     var userIdString = await SecureStorage.GetAsync("user_id");
                     if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int loggedInUserId))
                     {
-                        // Para clientes, es si es su receta
-                        // Para empresas, aquí podrías tener otra propiedad como IsOfferOwnedByCompany
                         IsRecipeOwnedByUser = (Receta.IdClienteCreador == loggedInUserId);
+
+                        // Si es cliente, verificar si es favorita
+                        if (IsClientUser)
+                        {
+                            var isFavResponse = await _apiService.IsFavoriteAsync(loggedInUserId, RecetaId);
+                            if (isFavResponse.IsSuccessStatusCode && isFavResponse.Content != null)
+                            {
+                                IsFavorite = isFavResponse.Content;
+                            }
+                        }
                     }
 
                     await LoadOffersCommand.ExecuteAsync(null);
@@ -346,6 +362,48 @@ namespace proyectoFin.MVVM.ViewModel
             {
                 ErrorMessage = $"Ocurrió un error inesperado al eliminar la oferta: {ex.Message}";
                 Console.WriteLine($"General Exception en DeleteOffer: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // ¡NUEVO! Método para añadir/eliminar de favoritos
+        private async Task ToggleFavorite()
+        {
+            if (IsBusy || Receta == null || !IsClientUser) return; // Solo clientes pueden marcar favoritos
+
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+
+            try
+            {
+                var request = new FavoritoToggleRequest { IdReceta = Receta.IdReceta };
+                var response = await _apiService.ToggleFavoritoAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    IsFavorite = !IsFavorite; // Alternar el estado localmente
+                    await Application.Current.MainPage.DisplayAlert("Favorito", IsFavorite ? "Receta añadida a favoritos." : "Receta eliminada de favoritos.", "OK");
+                    // Opcional: Recargar la lista de favoritos si esta página tiene un enlace a ella
+                }
+                else
+                {
+                    var errorContent = response.Error?.Content;
+                    ErrorMessage = $"Error al modificar favorito: {response.StatusCode}. Detalles: {errorContent}";
+                    Console.WriteLine($"API Error al modificar favorito: {response.StatusCode} - {errorContent}");
+                }
+            }
+            catch (Refit.ApiException ex)
+            {
+                ErrorMessage = $"Error de conexión o API: {(int)ex.StatusCode} - {ex.Message}. Detalles: {ex.Content}";
+                Console.WriteLine($"Refit API Exception al modificar favorito: {(int)ex.StatusCode} - {ex.Message} - {ex.Content}");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Ocurrió un error inesperado al modificar favorito: {ex.Message}";
+                Console.WriteLine($"General Exception en ToggleFavorite: {ex}");
             }
             finally
             {

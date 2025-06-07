@@ -48,6 +48,7 @@ namespace proyectoFin
             builder.Services.AddTransient<EmpresaProfileViewModel>();
             builder.Services.AddTransient<RecipeFormViewModel>();
             builder.Services.AddTransient<MyOrdersViewModel>();
+            builder.Services.AddTransient<RecetaItemViewModel>();
 
             // --- Registro de Páginas ---
             // La mayoría se registran como Transient para obtener nuevas instancias al navegar.

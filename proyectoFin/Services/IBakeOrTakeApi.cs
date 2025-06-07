@@ -44,7 +44,7 @@ namespace proyectoFin.Services
         [Get("/api/Clientes/{id}")]
         Task<ApiResponse<Cliente>> GetClienteByIdAsync(int id);
 
-       //Actualizar perfil de cliente por ID
+        //Actualizar perfil de cliente por ID
         [Put("/api/Clientes/{id}")]
         Task<ApiResponse<object>> UpdateClienteAsync(int id, [Body] Cliente updateData);
 
@@ -86,6 +86,15 @@ namespace proyectoFin.Services
 
         [Delete("/api/PedidosOfertas/{id_pedido_oferta}")]
         Task<ApiResponse<object>> DeleteOfferAsync(int id_pedido_oferta);
+
+        // --- Métodos para Favoritos ---
+        // Obtener si una receta es favorita para un cliente específico
+        [Get("/api/Favoritos/IsFavorite/{id_cliente}/{id_receta}")]
+        Task<ApiResponse<bool>> IsFavoriteAsync(int id_cliente, int id_receta); // Devuelve true/false
+
+        // Añadir/Eliminar un favorito (toggle)
+        [Post("/api/Favoritos/Toggle")]
+        Task<ApiResponse<object>> ToggleFavoritoAsync([Body] FavoritoToggleRequest request);
 
     }
 }

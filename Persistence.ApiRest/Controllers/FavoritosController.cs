@@ -6,7 +6,8 @@ using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Para List
+using System.Collections.Generic;
+using Domain.Model.ApiRequests; // Para List
 
 namespace Persistence.ApiRest.Controllers
 {
@@ -65,9 +66,65 @@ namespace Persistence.ApiRest.Controllers
             return Ok(recetaResponses);
         }
 
-        // Opcional: Endpoint para añadir/eliminar favoritos
-        // [HttpPost("toggle")]
-        // [Authorize(Roles = "Cliente")]
-        // public async Task<IActionResult> ToggleFavorito([FromBody] FavoritoRequest request) { ... }
+        // ¡NUEVO! Endpoint para verificar si una receta es favorita para un cliente
+        // GET /api/Favoritos/IsFavorite/{id_cliente}/{id_receta}
+        [HttpGet("IsFavorite/{id_cliente}/{id_receta}")]
+        [Authorize(Roles = "Cliente")] // Solo clientes autenticados
+        public async Task<ActionResult<bool>> IsFavorite(int id_cliente, int id_receta)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int idClienteActual))
+            {
+                return Unauthorized("No se pudo identificar al cliente actual.");
+            }
+
+            if (idClienteActual != id_cliente)
+            {
+                return Forbid("No tienes permiso para comprobar favoritos de otro usuario.");
+            }
+
+            bool isFavorite = await _context.Favoritos
+                                            .AnyAsync(f => f.id_cliente == id_cliente && f.id_receta == id_receta);
+            return Ok(isFavorite);
+        }
+
+        // ¡NUEVO! Endpoint para añadir o eliminar una receta de favoritos (toggle)
+        // POST /api/Favoritos/Toggle
+        [HttpPost("Toggle")]
+        [Authorize(Roles = "Cliente")] // Solo clientes autenticados
+        public async Task<IActionResult> ToggleFavorito([FromBody] FavoritoToggleRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int idClienteActual))
+            {
+                return Unauthorized("No se pudo identificar al cliente actual.");
+            }
+
+            // Verificar que el IdCliente en el request (si se enviara) coincide con el del token.
+            // En este caso, el request solo tiene IdReceta, el cliente ID se toma del token.
+
+            var favoritoExistente = await _context.Favoritos
+                                                .FirstOrDefaultAsync(f => f.id_cliente == idClienteActual && f.id_receta == request.IdReceta);
+
+            if (favoritoExistente != null)
+            {
+                // Si existe, eliminarlo (desmarcar como favorito)
+                _context.Favoritos.Remove(favoritoExistente);
+                await _context.SaveChangesAsync();
+                return NoContent(); // 204 No Content
+            }
+            else
+            {
+                // Si no existe, añadirlo (marcar como favorito)
+                var nuevaFavorito = new Favorito
+                {
+                    id_cliente = idClienteActual,
+                    id_receta = request.IdReceta
+                };
+                _context.Favoritos.Add(nuevaFavorito);
+                await _context.SaveChangesAsync();
+                return StatusCode(201); // 201 Created (o 204 No Content si prefieres no devolver nada)
+            }
+        }
     }
 }

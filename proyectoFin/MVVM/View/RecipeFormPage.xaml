@@ -10,8 +10,32 @@
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
 
-
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#5C4033"/>
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="Label">
+            <Setter Property="TextColor" Value="#7A5E48"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF8FAB"/>
+            <Setter Property="TextColor" Value="#5C4033"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="HeightRequest" Value="55"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#5C4033"/>
+            <Setter Property="TextColor" Value="#FFF5E1"/>
+        </Style>
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#FF8FAB"/>
+            <Setter Property="TextColor" Value="#5C4033"/>
+        </Style>
         <Style TargetType="Border">
             <Setter Property="StrokeShape">
                 <Setter.Value>
@@ -22,65 +46,74 @@
             <Setter Property="BackgroundColor" Value="#FDF1EB"/>
             <Setter Property="Padding" Value="15,0"/>
         </Style>
-
         <Style TargetType="Entry">
             <Setter Property="TextColor" Value="#5C4033"/>
             <Setter Property="PlaceholderColor" Value="#7A5E48"/>
             <Setter Property="HeightRequest" Value="50"/>
         </Style>
-
         <Style TargetType="Editor">
             <Setter Property="TextColor" Value="#5C4033"/>
             <Setter Property="PlaceholderColor" Value="#7A5E48"/>
             <Setter Property="AutoSize" Value="TextChanges"/>
             <Setter Property="HeightRequest" Value="100"/>
         </Style>
-
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="CenterAndExpand">
+        <VerticalStackLayout Spacing="5" Padding="30" VerticalOptions="StartAndExpand">
 
             <Label Text="{Binding IsNewRecipe, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Nueva Receta|Editar Receta'}"
                    FontSize="32"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
-                   TextColor="#5C4033"/>
+                   TextColor="#5C4033"
+                   Margin="0,0,0,20"/>
 
+            <Label Text="Nombre de la Receta" Style="{StaticResource FieldLabelStyle}"/>
             <Border>
-                <Entry Placeholder="Nombre de la Receta" Text="{Binding Nombre}" />
+                <Entry Placeholder="Ej: Tarta de Manzana" Text="{Binding Nombre}" />
             </Border>
 
+            <Label Text="Descripción" Style="{StaticResource FieldLabelStyle}"/>
             <Border>
-                <Editor Placeholder="Descripción de la Receta" Text="{Binding Descripcion}" />
+                <Editor Placeholder="Ej: Un postre clásico y delicioso..." Text="{Binding Descripcion}" />
             </Border>
 
+            <Label Text="Ingredientes" Style="{StaticResource FieldLabelStyle}"/>
             <Border>
-                <Editor Placeholder="Ingredientes (separados por comas o líneas)" Text="{Binding Ingredientes}" />
+                <Editor Placeholder="Ej: Harina, azúcar, manzanas, canela..." Text="{Binding Ingredientes}" />
             </Border>
 
+            <Label Text="Pasos de Preparación" Style="{StaticResource FieldLabelStyle}"/>
             <Border>
-                <Editor Placeholder="Pasos de Preparación" Text="{Binding Pasos}" />
+                <Editor Placeholder="Ej: 1. Pelar manzanas. 2. Mezclar ingredientes..." Text="{Binding Pasos}" />
             </Border>
 
+            <Label Text="URL de la Imagen" Style="{StaticResource FieldLabelStyle}"/>
             <Border>
-                <Entry Placeholder="URL de la Imagen (opcional)" Text="{Binding ImagenUrl}" Keyboard="Url" />
+                <Entry Placeholder="Ej: https://ejemplo.com/imagen.jpg" Text="{Binding ImagenUrl}" Keyboard="Url" />
             </Border>
 
-            <Button Text="{Binding SaveButtonText}"
+            <Button Text="Guardar"
                     Command="{Binding SaveRecipeCommand}"
                     IsEnabled="{Binding IsNotBusy}"
-                    BackgroundColor="#5C4033" TextColor="#FFF5E1" CornerRadius="15"
-                    HeightRequest="55"
-                    FontSize="18"
-                    FontAttributes="Bold"/>
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Margin="0,20,0,10"/>
 
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
+            <!-- ¡CORRECCIÓN CLAVE AQUÍ! IsEnabled debe ser IsNotBusy directamente (o InverseBoolConverter sobre IsBusy) -->
+            <Button Text="Cancelar"
+                    Command="{Binding CancelCommand}"
+                    IsEnabled="{Binding IsNotBusy}" 
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,0,20"/>
+
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
                                Color="#FF6F61" HorizontalOptions="Center" />
 
-            <Label Text="{Binding ErrorMessage}"
-                   TextColor="#FF6F61" HorizontalOptions="Center"
+                <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red" HorizontalOptions="Center"
                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringIsNullOrEmptyConverter}}" />
 
         </VerticalStackLayout>

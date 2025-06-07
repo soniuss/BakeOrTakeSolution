@@ -9,12 +9,14 @@ using Refit;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection; // Necesario para IServiceProvider
 
 namespace proyectoFin.MVVM.ViewModel
 {
     public partial class RecipeFormViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
         private int _recetaId;
@@ -44,21 +46,27 @@ namespace proyectoFin.MVVM.ViewModel
         private string _errorMessage;
 
         public bool IsNewRecipe => RecetaId == 0;
-        public string SaveButtonText => IsNewRecipe ? "Crear Receta" : "Guardar Cambios";
+        public string SaveButtonText => "Guardar";
 
         public IAsyncRelayCommand SaveRecipeCommand { get; }
         public IAsyncRelayCommand LoadRecipeCommand { get; }
+        public IRelayCommand CancelCommand { get; }
 
-        public RecipeFormViewModel(IBakeOrTakeApi apiService)
+        public RecipeFormViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
+            _serviceProvider = serviceProvider;
             SaveRecipeCommand = new AsyncRelayCommand(SaveRecipe);
             LoadRecipeCommand = new AsyncRelayCommand(LoadRecipe);
+            CancelCommand = new RelayCommand(async () => await PerformCancel());
         }
 
         public async Task InitializeAsync(int recetaId = 0)
         {
             RecetaId = recetaId;
+            OnPropertyChanged(nameof(IsNewRecipe));
+            OnPropertyChanged(nameof(SaveButtonText));
+
             if (!IsNewRecipe)
             {
                 await LoadRecipeCommand.ExecuteAsync(null);
@@ -141,7 +149,7 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                var recetaToSave = new Receta
+                var recetaToSave = new Domain.Model.Receta
                 {
                     nombre = Nombre,
                     descripcion = Descripcion,
@@ -167,23 +175,20 @@ namespace proyectoFin.MVVM.ViewModel
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", IsNewRecipe ? "Receta creada exitosamente." : "Receta actualizada exitosamente.", "OK");
 
-                    // ¡CORRECCIÓN CLAVE AQUÍ! Simplificar la navegación de regreso
-                    // Intentar PopAsync en la NavigationPage actual
+                    // Lógica de navegación de regreso
                     if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
                     {
-                        Console.WriteLine("DEBUG: Navegando de regreso desde TabbedPage context.");
+                        Console.WriteLine("DEBUG: Navegando de regreso desde TabbedPage context (SaveRecipe).");
                         await currentTabPageNav.PopAsync();
                     }
-                    else if (Application.Current.MainPage is NavigationPage directNavPage) // Si no es una TabbedPage, pero es una NavigationPage directa
+                    else if (Application.Current.MainPage is NavigationPage directNavPage)
                     {
-                        Console.WriteLine("DEBUG: Navegando de regreso desde NavigationPage directa.");
+                        Console.WriteLine("DEBUG: Navegando de regreso desde NavigationPage directa (SaveRecipe).");
                         await directNavPage.PopAsync();
                     }
                     else
                     {
-                        // Fallback si el contexto de navegación es inesperado (ej. no es NavigationPage)
-                        Console.WriteLine("ADVERTENCIA: Contexto de navegación inesperado para PopAsync. No se pudo volver.");
-                        // Podrías intentar ir a la raíz o simplemente no hacer nada si no hay pila.
+                        Console.WriteLine("ADVERTENCIA: Contexto de navegación inesperado para PopAsync en SaveRecipe. No se pudo volver.");
                     }
                 }
                 else
@@ -206,6 +211,32 @@ namespace proyectoFin.MVVM.ViewModel
             finally
             {
                 IsBusy = false;
+            }
+        }
+
+        private async Task PerformCancel()
+        {
+            Console.WriteLine("DEBUG: PerformCancel() llamado."); // ¡NUEVO!
+            if (IsBusy)
+            {
+                Console.WriteLine("DEBUG: PerformCancel() - ViewModel ocupado, no se puede cancelar."); // ¡NUEVO!
+                return;
+            }
+
+            // Lógica para volver a la página anterior sin guardar
+            if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
+            {
+                Console.WriteLine("DEBUG: Cancelando y volviendo desde TabbedPage context."); // ¡NUEVO!
+                await currentTabPageNav.PopAsync(); // Vuelve a la página anterior
+            }
+            else if (Application.Current.MainPage is NavigationPage directNavPage)
+            {
+                Console.WriteLine("DEBUG: Cancelando y volviendo desde NavigationPage directa."); // ¡NUEVO!
+                await directNavPage.PopAsync();
+            }
+            else
+            {
+                Console.WriteLine("ADVERTENCIA: Contexto de navegación inesperado para cancelar. No se pudo volver."); // ¡NUEVO!
             }
         }
     }

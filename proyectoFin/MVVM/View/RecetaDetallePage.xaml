@@ -13,7 +13,6 @@
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
-        <!-- No necesitamos declarar StringToBoolConverter aquí -->
 
         <Style TargetType="Label">
             <Setter Property="TextColor" Value="#5C4033"/>
@@ -47,12 +46,9 @@
             <Setter Property="AutoSize" Value="TextChanges"/>
             <Setter Property="HeightRequest" Value="100"/>
         </Style>
-        <!-- ESTILO ESPECÍFICO PARA BOTONES DE PELIGRO (Eliminar) -->
         <Style x:Key="DangerButtonStyle" TargetType="Button">
             <Setter Property="BackgroundColor" Value="#FF6F61"/>
-            <!-- Coral tierno -->
             <Setter Property="TextColor" Value="#FFF5E1"/>
-            <!-- Crema vainilla -->
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="HeightRequest" Value="40"/>
             <Setter Property="FontSize" Value="Small"/>
@@ -60,22 +56,48 @@
             <Setter Property="Margin" Value="5,0"/>
             <Setter Property="FontAttributes" Value="Bold"/>
         </Style>
+        <!-- Estilo para el icono de corazón (puedes usar FontAwesome si lo añades) -->
+        <Style x:Key="HeartButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="WidthRequest" Value="40" />
+            <Setter Property="HeightRequest" Value="40" />
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="BorderColor" Value="Transparent" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
     </ContentPage.Resources>
 
     <ScrollView>
         <VerticalStackLayout Spacing="15" Padding="20">
             <!-- Sección de Detalles de la Receta -->
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- Grid para el nombre y el botón de favorito -->
+                <Label Grid.Column="0" Text="{Binding Receta.Nombre}"
+                       FontSize="Large"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="#5C4033"/>
+
+                <!-- ¡NUEVO! Botón de Favorito (Corazón) -->
+                <Button Grid.Column="1"
+                        Command="{Binding ToggleFavoriteCommand}"
+                        IsVisible="{Binding IsClientUser}"
+                        Style="{StaticResource HeartButtonStyle}">
+                    <Button.ImageSource>
+                        <FontImageSource Glyph="{Binding IsFavorite, 
+                            Converter={StaticResource BoolToStringConverter}, ConverterParameter='&#xf004;|&#xf08a;'}"
+                            FontFamily="FAS"
+                            Color="{Binding IsFavorite, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#FF6F61|#7A5E48'}" />
+                           
+                    </Button.ImageSource>
+                </Button>
+            </Grid>
+
             <Image Source="{Binding Receta.ImagenUrl}"
                    Aspect="AspectFill"
                    HeightRequest="200"
                    HorizontalOptions="Center"
                    Margin="0,0,0,10"/>
-
-            <Label Text="{Binding Receta.Nombre}"
-                   FontSize="Large"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   TextColor="#5C4033"/>
 
             <Label Text="Descripción:" FontAttributes="Bold" TextColor="#7A5E48"/>
             <Label Text="{Binding Receta.Descripcion}" TextColor="#5C4033"/>
@@ -85,6 +107,9 @@
 
             <Label Text="Pasos:" FontAttributes="Bold" TextColor="#7A5E48"/>
             <Label Text="{Binding Receta.Pasos}" TextColor="#5C4033"/>
+
+            <!-- ¡CORRECCIÓN! ELIMINAMOS ESTOS LABELS DE CREADOR -->
+            <!-- Ya no se muestran los datos del creador aquí -->
 
             <!-- Botón de Editar Receta (visible solo si la receta es del usuario logueado) -->
             <Button Text="Editar Receta"
