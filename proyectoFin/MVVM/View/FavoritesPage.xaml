@@ -11,16 +11,15 @@
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
-        <Style TargetType="Border">
-            <Setter Property="StrokeShape">
-                <Setter.Value>
-                    <RoundRectangle CornerRadius="10"/>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="StrokeThickness" Value="0"/>
-            <Setter Property="BackgroundColor" Value="#FDF1EB"/>
-            <Setter Property="Padding" Value="15"/>
-            <Setter Property="Margin" Value="0,5"/>
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+        <Style x:Key="HeartRemoveButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="WidthRequest" Value="40" />
+            <Setter Property="HeightRequest" Value="40" />
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="BorderColor" Value="Transparent" />
+            <Setter Property="Padding" Value="0" />
         </Style>
     </ContentPage.Resources>
 
@@ -35,20 +34,28 @@
 
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding FavoriteRecipes}"
-                        SelectionMode="Single"
-                        SelectionChangedCommand="{Binding SelectFavoriteRecipeCommand}"
-                        SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}">
+                        SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="modelResponses:RecetaResponse">
-                    <Frame Margin="10" Padding="15" CornerRadius="10" HasShadow="True">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Nombre}" FontSize="Medium" FontAttributes="Bold" TextColor="#5C4033" />
+                    <Frame Margin="10" Padding="15" CornerRadius="10" HasShadow="True" BackgroundColor="#FDF1EB">
+                        <VerticalStackLayout Spacing="5">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{Binding Nombre}" FontSize="Medium" FontAttributes="Bold" TextColor="#5C4033"/>
+                                <!-- Botón de corazón para quitar de favoritos -->
+                                <Button Grid.Column="1"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:FavoritesViewModel}}, Path=RemoveFavoriteCommand}"
+                                        CommandParameter="{Binding .}"
+                                        Style="{StaticResource HeartRemoveButtonStyle}">
+                                    <Button.ImageSource>
+                                        <!-- Siempre corazón relleno porque ya es favorito -->
+                                        <FontImageSource Glyph="&#xf004;"
+                                                         FontFamily="FAS"/>
+                                    </Button.ImageSource>
+                                </Button>
+                            </Grid>
                             <Label Text="{Binding Descripcion}" FontSize="Small" TextColor="#7A5E48" />
-                            <Label Text="{Binding ClienteCreadorNombre, StringFormat='Creador: {0}'}" FontSize="Small" TextColor="#7A5E48" />
-                            <Image Source="{Binding ImagenUrl}"
-                                   Aspect="AspectFill"
-                                   HeightRequest="100"
-                                   Margin="0,10,0,0" />
+                            <!-- ¡ELIMINAMOS LA INFORMACIÓN DEL CREADOR! -->
+                            <!-- <Label Text="{Binding ClienteCreadorNombre, StringFormat='Creador: {0}'}" FontSize="Small" TextColor="#7A5E48" /> -->
                         </VerticalStackLayout>
                     </Frame>
                 </DataTemplate>

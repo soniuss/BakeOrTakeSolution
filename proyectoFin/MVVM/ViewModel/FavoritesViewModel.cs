@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using proyectoFin.Services;
 using Domain.Model.ApiResponses; // Para RecetaResponse
+using Domain.Model.ApiRequests; // Para FavoritoToggleRequest
 using Microsoft.Maui.Storage; // Para SecureStorage
 using System;
 using Refit; // Para ApiException
@@ -27,9 +28,9 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private bool _showNoFavoritesMessage;
 
-
         public IAsyncRelayCommand LoadFavoriteRecipesCommand { get; }
         public IAsyncRelayCommand<RecetaResponse> SelectFavoriteRecipeCommand { get; }
+        public IAsyncRelayCommand<RecetaResponse> RemoveFavoriteCommand { get; }
 
         private readonly IBakeOrTakeApi _apiService;
 
@@ -41,8 +42,7 @@ namespace proyectoFin.MVVM.ViewModel
 
             LoadFavoriteRecipesCommand = new AsyncRelayCommand(LoadFavoriteRecipesAsync);
             SelectFavoriteRecipeCommand = new AsyncRelayCommand<RecetaResponse>(OnFavoriteRecipeSelected);
-
-            _ = LoadFavoriteRecipesAsync();
+            RemoveFavoriteCommand = new AsyncRelayCommand<RecetaResponse>(RemoveFavorite);
         }
 
         private async Task LoadFavoriteRecipesAsync()
@@ -71,7 +71,7 @@ namespace proyectoFin.MVVM.ViewModel
 
             if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
             {
-                ErrorMessage = "No se pudo obtener el token de autenticación para cargar favoritos. Por favor, intente iniciar sesión de nuevo.";
+                ErrorMessage = "No se pudo obtener el token de autenticación para cargar favoritos. Por favor, intente iniciar sesión de nuevo si el problema persiste.";
                 await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
                 IsBusy = false;
                 ShowNoFavoritesMessage = true;
@@ -89,7 +89,6 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // ¡CORRECCIÓN CLAVE AQUÍ! Llamada al método existente en IBakeOrTakeApi
                 var response = await _apiService.GetFavoritosByClientAsync(idClienteActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
@@ -131,7 +130,54 @@ namespace proyectoFin.MVVM.ViewModel
             if (selectedReceta != null)
             {
                 Console.WriteLine($"Receta favorita seleccionada: {selectedReceta.Nombre}");
-                await Application.Current.MainPage.DisplayAlert("Receta Favorita Seleccionada", $"Has seleccionado tu favorita: {selectedReceta.Nombre}", "OK");
+                // Puedes navegar a RecetaDetallePage si lo deseas
+            }
+        }
+
+        // ¡CORRECCIÓN CLAVE AQUÍ! Lógica para eliminar de favoritos
+        private async Task RemoveFavorite(RecetaResponse recetaToRemove)
+        {
+            if (recetaToRemove == null || IsBusy) return;
+
+            bool confirm = await Application.Current.MainPage.DisplayAlert("Eliminar de Favoritos", $"¿Estás seguro de que quieres eliminar '{recetaToRemove.Nombre}' de tus favoritos?", "Sí", "No");
+            if (!confirm) return;
+
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+
+            try
+            {
+                var request = new FavoritoToggleRequest { IdReceta = recetaToRemove.IdReceta };
+                // La API ToggleFavoritoAsync debería manejar tanto añadir como eliminar.
+                // Si la receta ya es favorita, este endpoint la eliminará.
+                var response = await _apiService.ToggleFavoritoAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Éxito", "Receta eliminada de favoritos.", "OK");
+                    FavoriteRecipes.Remove(recetaToRemove); // Eliminar localmente de la ObservableCollection
+                    ShowNoFavoritesMessage = FavoriteRecipes.Count == 0; // Actualizar mensaje "no hay favoritos"
+                }
+                else
+                {
+                    var errorContent = response.Error?.Content;
+                    ErrorMessage = $"Error al eliminar de favoritos: {response.StatusCode}. Detalles: {errorContent}";
+                    await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
+                }
+            }
+            catch (Refit.ApiException ex)
+            {
+                ErrorMessage = $"Error de conexión o API: {(int)ex.StatusCode} - {ex.Message}. Detalles: {ex.Content}";
+                await Application.Current.MainPage.DisplayAlert("Error de Conexión", ErrorMessage, "OK");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Ocurrió un error inesperado al eliminar de favoritos: {ex.Message}";
+                await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
     }

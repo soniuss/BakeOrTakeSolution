@@ -4,10 +4,13 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using proyectoFin.Services;
-using Domain.Model.ApiResponses; // Para RecetaResponse
-using Microsoft.Maui.Storage; // Para SecureStorage
+using Domain.Model.ApiResponses;
+using Microsoft.Maui.Storage;
 using System;
-using proyectoFin.MVVM.View; // Para RecipeFormPage, RecetaDetallePage
+using Refit;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using proyectoFin.MVVM.View;
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -17,15 +20,16 @@ namespace proyectoFin.MVVM.ViewModel
         private ObservableCollection<RecetaResponse> myRecipes;
 
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotBusy))]
         private bool _isBusy;
-
-        public bool IsNotBusy => !IsBusy;
 
         [ObservableProperty]
         private string _errorMessage;
 
+        public bool IsNotBusy => !IsBusy;
+
+        // ¡CORRECCIÓN CLAVE AQUÍ! Debe ser IAsyncRelayCommand
         public IAsyncRelayCommand LoadMyRecipesCommand { get; }
+
         public IAsyncRelayCommand<RecetaResponse> SelectMyRecipeCommand { get; }
         public IAsyncRelayCommand AddNewRecipeCommand { get; }
         public IAsyncRelayCommand<RecetaResponse> EditRecipeCommand { get; }
@@ -40,23 +44,23 @@ namespace proyectoFin.MVVM.ViewModel
             _serviceProvider = serviceProvider;
             MyRecipes = new ObservableCollection<RecetaResponse>();
 
+            // La inicialización ya era correcta como AsyncRelayCommand
             LoadMyRecipesCommand = new AsyncRelayCommand(LoadMyRecipesAsync);
             SelectMyRecipeCommand = new AsyncRelayCommand<RecetaResponse>(OnMyRecipeSelected);
             AddNewRecipeCommand = new AsyncRelayCommand(AddNewRecipe);
             EditRecipeCommand = new AsyncRelayCommand<RecetaResponse>(EditRecipe);
             DeleteRecipeCommand = new AsyncRelayCommand<RecetaResponse>(DeleteRecipe);
-
-            _ = LoadMyRecipesAsync();
         }
 
         private async Task LoadMyRecipesAsync()
         {
+            Console.WriteLine("DEBUG: MyRecipesViewModel - LoadMyRecipesAsync iniciado.");
+
             if (IsBusy) return;
 
             IsBusy = true;
             ErrorMessage = string.Empty;
 
-            // ¡NUEVA LÓGICA PARA ESPERAR EL TOKEN!
             string token = await SecureStorage.GetAsync("jwt_token");
             int retryCount = 0;
             const int maxRetries = 3;
@@ -66,7 +70,7 @@ namespace proyectoFin.MVVM.ViewModel
             {
                 while (string.IsNullOrEmpty(token) && retryCount < maxRetries)
                 {
-                    Console.WriteLine($"DEBUG: Token no encontrado aún en MyRecipesViewModel. Reintentando... (Intento {retryCount + 1})");
+                    Console.WriteLine($"DEBUG: MyRecipesViewModel - Token no encontrado aún. Reintentando... (Intento {retryCount + 1})");
                     await Task.Delay(retryDelayMs);
                     token = await SecureStorage.GetAsync("jwt_token");
                     retryCount++;
@@ -75,12 +79,11 @@ namespace proyectoFin.MVVM.ViewModel
 
             if (string.IsNullOrEmpty(token) && maxRetries > 0 && retryCount == maxRetries)
             {
-                ErrorMessage = "No se pudo obtener el token de autenticación para cargar tus recetas. Por favor, intente iniciar sesión de nuevo.";
+                ErrorMessage = "No se pudo obtener el token de autenticación para cargar tus recetas. Por favor, intente iniciar sesión de nuevo si el problema persiste.";
                 await Application.Current.MainPage.DisplayAlert("Advertencia", ErrorMessage, "OK");
                 IsBusy = false;
                 return;
             }
-            // --- FIN LÓGICA DE ESPERA ---
 
             try
             {
@@ -90,14 +93,17 @@ namespace proyectoFin.MVVM.ViewModel
                     ErrorMessage = "No se pudo obtener el ID del usuario logueado.";
                     return;
                 }
+                Console.WriteLine($"DEBUG: MyRecipesViewModel - idClienteActual para GetRecetasByCreator: {idClienteActual}");
 
                 var response = await _apiService.GetRecetasByCreatorAsync(idClienteActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
                 {
                     MyRecipes.Clear();
+                    Console.WriteLine($"DEBUG: MyRecipesViewModel - Recetas recibidas de la API para el creador {idClienteActual}: {response.Content.Count}");
                     foreach (var recetaResponse in response.Content)
                     {
+                        Console.WriteLine($"DEBUG: MyRecipesViewModel - Receta añadida: {recetaResponse.Nombre} (ID: {recetaResponse.IdReceta})");
                         MyRecipes.Add(recetaResponse);
                     }
                 }
@@ -106,21 +112,25 @@ namespace proyectoFin.MVVM.ViewModel
                     var errorContent = response.Error?.Content;
                     ErrorMessage = $"No se pudieron cargar tus recetas. Código: {response.StatusCode}. Detalles: {errorContent}";
                     await Application.Current.MainPage.DisplayAlert("Error de Carga", ErrorMessage, "OK");
+                    Console.WriteLine($"ERROR: MyRecipesViewModel - {ErrorMessage}");
                 }
             }
             catch (Refit.ApiException ex)
             {
                 ErrorMessage = $"Error de conexión o API: {(int)ex.StatusCode} - {ex.Message}. Detalles: {ex.Content}";
                 await Application.Current.MainPage.DisplayAlert("Error de Conexión", ErrorMessage, "OK");
+                Console.WriteLine($"ERROR: MyRecipesViewModel - {ErrorMessage}");
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Ocurrió un error inesperado al cargar tus recetas: {ex.Message}";
                 await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
+                Console.WriteLine($"ERROR: MyRecipesViewModel - {ErrorMessage}");
             }
             finally
             {
                 IsBusy = false;
+                Console.WriteLine("DEBUG: MyRecipesViewModel - LoadMyRecipesAsync finalizado.");
             }
         }
 
@@ -128,13 +138,14 @@ namespace proyectoFin.MVVM.ViewModel
         {
             if (selectedReceta != null)
             {
-                Console.WriteLine($"Mi receta seleccionada: {selectedReceta.Nombre}");
+                Console.WriteLine($"DEBUG: MyRecipesViewModel - Receta seleccionada para detalle: {selectedReceta.Nombre}");
                 await NavigateToRecipeDetailPage(selectedReceta.IdReceta);
             }
         }
 
         private async Task AddNewRecipe()
         {
+            Console.WriteLine("DEBUG: MyRecipesViewModel - AddNewRecipe iniciado.");
             if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
             {
                 var recipeFormPage = _serviceProvider.GetService<RecipeFormPage>();
@@ -161,6 +172,7 @@ namespace proyectoFin.MVVM.ViewModel
 
         private async Task EditRecipe(RecetaResponse recipeToEdit)
         {
+            Console.WriteLine($"DEBUG: MyRecipesViewModel - EditRecipe iniciado para ID: {recipeToEdit.IdReceta}");
             if (recipeToEdit == null) return;
 
             if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
@@ -189,6 +201,7 @@ namespace proyectoFin.MVVM.ViewModel
 
         private async Task DeleteRecipe(RecetaResponse recipeToDelete)
         {
+            Console.WriteLine($"DEBUG: MyRecipesViewModel - DeleteRecipe iniciado para ID: {recipeToDelete.IdReceta}");
             if (recipeToDelete == null) return;
 
             bool confirm = await Application.Current.MainPage.DisplayAlert("Confirmar Eliminación", $"¿Estás seguro de que quieres eliminar la receta '{recipeToDelete.Nombre}'?", "Sí", "No");
@@ -203,25 +216,28 @@ namespace proyectoFin.MVVM.ViewModel
 
                 if (response.IsSuccessStatusCode)
                 {
-                    MyRecipes.Remove(recipeToDelete);
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Receta eliminada exitosamente.", "OK");
+                    MyRecipes.Remove(recipeToDelete);
                 }
                 else
                 {
                     var errorContent = response.Error?.Content;
                     ErrorMessage = $"Error al eliminar receta: {response.StatusCode}. Detalles: {errorContent}";
                     await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
+                    Console.WriteLine($"ERROR: MyRecipesViewModel - {ErrorMessage}");
                 }
             }
             catch (Refit.ApiException ex)
             {
                 ErrorMessage = $"Error de conexión o API: {(int)ex.StatusCode} - {ex.Message}. Detalles: {ex.Content}";
                 await Application.Current.MainPage.DisplayAlert("Error de Conexión", ErrorMessage, "OK");
+                Console.WriteLine($"ERROR: MyRecipesViewModel - {ErrorMessage}");
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Ocurrió un error inesperado al eliminar la receta: {ex.Message}";
                 await Application.Current.MainPage.DisplayAlert("Error", ErrorMessage, "OK");
+                Console.WriteLine($"ERROR: MyRecipesViewModel - {ErrorMessage}");
             }
             finally
             {
@@ -231,6 +247,7 @@ namespace proyectoFin.MVVM.ViewModel
 
         private async Task NavigateToRecipeDetailPage(int recipeId)
         {
+            Console.WriteLine($"DEBUG: MyRecipesViewModel - Navegando a detalle de receta ID: {recipeId}");
             if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
             {
                 var recetaDetallePage = _serviceProvider.GetService<RecetaDetallePage>();

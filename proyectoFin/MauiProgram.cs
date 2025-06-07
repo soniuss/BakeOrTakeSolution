@@ -19,6 +19,7 @@ namespace proyectoFin
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("fa-solid-900.ttf", "FAS");
                 });
 
 #if DEBUG
