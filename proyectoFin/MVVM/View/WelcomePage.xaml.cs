@@ -15,7 +15,7 @@ public partial class WelcomePage : ContentPage
     // Manejador para el evento Clicked del boton "Iniciar Sesion"
     private async void OnLoginButtonClicked(object sender, EventArgs e)
     {
-        // *** CAMBIO CRÍTICO AQUÍ: Obtener la LoginPage del contenedor de servicios ***
+        
         var loginPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<LoginPage>();
         await Navigation.PushAsync(loginPage);
     }
@@ -23,7 +23,7 @@ public partial class WelcomePage : ContentPage
     // Manejador para el evento Clicked del boton "Registrarse"
     private async void OnRegisterButtonClicked(object sender, EventArgs e)
     {
-        // *** CAMBIO CRÍTICO AQUÍ: Obtener la RegisterPage del contenedor de servicios ***
+        
         var registerPage = Application.Current.Handler.MauiContext.Services.GetRequiredService<RegisterPage>();
         await Navigation.PushAsync(registerPage);
     }

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="proyectoFin.MVVM.View.ManageRecipesPage"
              Title="Gestionar Recetas"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
     <ContentPage.Resources>
         <Style TargetType="Border">
             <Setter Property="StrokeShape">

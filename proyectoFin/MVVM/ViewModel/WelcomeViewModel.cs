@@ -12,7 +12,7 @@ namespace proyectoFin.MVVM.ViewModel
     public partial class WelcomeViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
-        private readonly IServiceProvider _serviceProvider; // Opcional, si WelcomeViewModel necesita navegar directamente
+        private readonly IServiceProvider _serviceProvider; // si WelcomeViewModel necesita navegar directamente
 
         public WelcomeViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider) // Recibe IServiceProvider
         {

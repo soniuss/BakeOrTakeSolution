@@ -7,7 +7,8 @@
              x:DataType="viewmodel:MyRecipesViewModel"
              x:Class="proyectoFin.MVVM.View.MyRecipesPage"
              Title="Mis Recetas"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
@@ -55,24 +56,10 @@
                 <DataTemplate x:DataType="modelResponses:RecetaResponse">
                     <Border>
                         <VerticalStackLayout Spacing="5">
-                            <!-- ¡CORRECCIÓN CLAVE AQUÍ! Usar Nombre (PascalCase) -->
                             <Label Text="{Binding Nombre}"
                                    FontSize="Medium"
                                    FontAttributes="Bold"
                                    TextColor="#5C4033" />
-                            <!-- Si quieres la descripción o imagen, también usa PascalCase: -->
-                            <!--
-                            <Label Text="{Binding Descripcion}"
-                                   FontSize="Small"
-                                   TextColor="#7A5E48"
-                                   MaxLines="2"
-                                   LineBreakMode="TailTruncation" />
-                            <Image Source="{Binding ImagenUrl}"
-                                   Aspect="AspectFill"
-                                   HeightRequest="150"
-                                   Margin="0,10,0,0" />
-                            -->
-
                             <HorizontalStackLayout HorizontalOptions="End" Spacing="10" Margin="0,10,0,0">
                                 <Button Text="Editar"
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MyRecipesViewModel}}, Path=EditRecipeCommand}"
@@ -99,7 +86,6 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Botón "Añadir Nueva Receta" al final de la página -->
         <Button Grid.Row="2"
                 Text="Añadir Nueva Receta"
                 Command="{Binding AddNewRecipeCommand}"

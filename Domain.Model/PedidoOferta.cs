@@ -12,10 +12,10 @@ namespace Domain.Model
 
         // --- Datos de la Oferta ---
         public double precio { get; set; }
-        public bool disponibilidad { get; set; } // O el tipo adecuado
+        public bool disponibilidad { get; set; } 
         public string descripcionOferta { get; set; } // Descripción específica de esta oferta/pedido
 
-        // Enlaces a Empresa y Receta (lado 'muchos' en las relaciones 1:N)
+        // Enlaces a Empresa y Receta (lado 'muchos' en las relaciones)
         public int id_empresa { get; set; } // Clave Foránea (La empresa que la ofrece/crea)
         public Empresa Empresa { get; set; } // Propiedad de navegación a la Empresa
 
@@ -30,7 +30,7 @@ namespace Domain.Model
         public DateTime? fechaPedido { get; set; } // Será NULL si es solo una oferta
         public string estado { get; set; } // Ej: "Oferta", "Pedido_Pendiente", "Pedido_Completado"
 
-        // --- Datos de la Valoración (EMBEBIDA, SI es un Pedido y está valorado) ---
+        // --- Datos de la Valoración ---
         public int? puntuacion { get; set; } // Será NULL si no está valorado o no es un pedido
         public string? comentario { get; set; } // Será NULL si no está valorado o no es un pedido
         public DateTime? fechaValoracion { get; set; } // Será NULL si no está valorado o no es un pedido
@@ -38,7 +38,7 @@ namespace Domain.Model
 
         public PedidoOferta()
         {
-            // Puedes generar el ID aquí
+            
         }
     }
 }

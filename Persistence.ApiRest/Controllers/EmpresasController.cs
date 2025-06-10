@@ -29,13 +29,7 @@ namespace Persistence.ApiRest.Controllers
                 return NotFound();
             }
 
-            // Opcional: Verificar que el ID del token coincide con el ID solicitado si es para perfil propio
-            // var userIdFromToken = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            // if (userIdFromToken != null && int.Parse(userIdFromToken) != id)
-            // {
-            //     return Forbid(); // O Unauthorized
-            // }
-
+            
             return Ok(empresa);
         }
 
@@ -55,21 +49,12 @@ namespace Persistence.ApiRest.Controllers
             {
                 return NotFound();
             }
-            // Opcional: Verificar que el ID del token coincide con el ID solicitado
-            // var userIdFromToken = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            // if (userIdFromToken != null && int.Parse(userIdFromToken) != id)
-            // {
-            //     return Forbid(); // O Unauthorized
-            // }
 
             // Actualizar solo los campos permitidos
             existingEmpresa.email = updateData.email;
             existingEmpresa.nombre_negocio = updateData.nombre_negocio;
             existingEmpresa.descripcion = updateData.descripcion;
             existingEmpresa.ubicacion = updateData.ubicacion;
-            // No actualizar password_hash directamente aquí; debe ser un endpoint separado y seguro.
-            // No actualizar fecha_registro
-
             try
             {
                 await _context.SaveChangesAsync();

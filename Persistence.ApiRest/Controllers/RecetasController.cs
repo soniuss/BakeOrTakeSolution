@@ -1,11 +1,9 @@
-﻿using Domain.Model; // Para la entidad Receta (como entrada para POST/PUT)
-using Domain.Model.ApiResponses; // ¡NUEVO! Para RecetaResponse (como salida/respuesta)
+﻿using Domain.Model; 
+using Domain.Model.ApiResponses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims; // Necesario para acceder a los claims del token
-using Microsoft.AspNetCore.Authorization; // Necesario para el atributo [Authorize]
-using System.Linq; // Para Select
-using System.Collections.Generic; // Para IEnumerable
+using System.Security.Claims; 
+using Microsoft.AspNetCore.Authorization; 
 
 namespace Persistence.ApiRest.Controllers
 {
@@ -20,10 +18,10 @@ namespace Persistence.ApiRest.Controllers
             _context = context;
         }
 
-        // Endpoint para obtener todas las recetas (PÚBLICO)
+        // Endpoint para obtener todas las recetas
         // GET /api/Recetas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RecetaResponse>>> GetRecetas() // ¡CAMBIO: Devuelve RecetaResponse!
+        public async Task<ActionResult<IEnumerable<RecetaResponse>>> GetRecetas() 
         {
             var recetas = await _context.Recetas
                                         .Include(r => r.ClienteCreador) // Incluimos el creador para el mapeo a DTO
@@ -50,7 +48,7 @@ namespace Persistence.ApiRest.Controllers
         // Endpoint para obtener una receta por ID (PÚBLICO)
         // GET /api/Recetas/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<RecetaResponse>> GetReceta(int id) // ¡CAMBIO: Devuelve RecetaResponse!
+        public async Task<ActionResult<RecetaResponse>> GetReceta(int id) 
         {
             var receta = await _context.Recetas
                                        .Include(r => r.ClienteCreador)
@@ -83,7 +81,7 @@ namespace Persistence.ApiRest.Controllers
         // POST /api/Recetas
         [HttpPost]
         [Authorize(Roles = "Cliente")] // Solo clientes autenticados pueden crear recetas
-        public async Task<ActionResult<RecetaResponse>> CreateReceta([FromBody] Receta newReceta) // ¡CAMBIO: Devuelve RecetaResponse!
+        public async Task<ActionResult<RecetaResponse>> CreateReceta([FromBody] Receta newReceta) 
         {
             // Obtener el ID del cliente del token JWT
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -186,7 +184,7 @@ namespace Persistence.ApiRest.Controllers
         // GET /api/Recetas/ByCreator/{id_cliente_creador}
         [HttpGet("ByCreator/{id_cliente_creador}")]
         [Authorize(Roles = "Cliente")] // Solo clientes autenticados pueden ver sus propias recetas
-        public async Task<ActionResult<IEnumerable<RecetaResponse>>> GetRecetasByCreator(int id_cliente_creador) // ¡CAMBIO: Devuelve RecetaResponse!
+        public async Task<ActionResult<IEnumerable<RecetaResponse>>> GetRecetasByCreator(int id_cliente_creador)
         {
             // Opcional: Verificar que el ID del token coincide con el ID solicitado
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -227,7 +225,7 @@ namespace Persistence.ApiRest.Controllers
         // GET /api/Recetas/ByCompany/{id_empresa}
         [HttpGet("ByCompany/{id_empresa}")]
         [Authorize(Roles = "Empresa")] // Solo empresas autenticadas pueden ver sus recetas/ofertas
-        public async Task<ActionResult<IEnumerable<RecetaResponse>>> GetRecetasByCompany(int id_empresa) // ¡CAMBIO: Devuelve RecetaResponse!
+        public async Task<ActionResult<IEnumerable<RecetaResponse>>> GetRecetasByCompany(int id_empresa) 
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int idEmpresaActual))

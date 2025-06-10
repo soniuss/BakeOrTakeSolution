@@ -1,5 +1,4 @@
-using Microsoft.Maui.Controls;
-using proyectoFin.MVVM.ViewModel; // Asegúrate de tener este using
+using proyectoFin.MVVM.ViewModel; 
 
 namespace proyectoFin.MVVM.View
 {

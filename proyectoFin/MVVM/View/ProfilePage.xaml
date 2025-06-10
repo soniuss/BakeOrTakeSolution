@@ -6,7 +6,8 @@
              x:DataType="viewmodel:ProfileViewModel"
              x:Class="proyectoFin.MVVM.View.ProfilePage"
              Title="Mi Perfil"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
@@ -80,7 +81,7 @@
                 </Border>
             </VerticalStackLayout>
 
-            <!-- ¡NUEVO! Contenedor para botones de acción -->
+            <!--Contenedor para botones de acción -->
             <VerticalStackLayout Grid.Row="2" Spacing="10" Margin="0,20,0,0">
                 <!-- Botón GUARDAR CAMBIOS (visible solo en modo edición) -->
                 <Button Text="Guardar Cambios"

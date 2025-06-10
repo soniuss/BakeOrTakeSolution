@@ -5,7 +5,8 @@
              xmlns:converters="clr-namespace:proyectoFin.Converters"
              x:Class="proyectoFin.MVVM.View.RecipeFormPage"
              Title="{Binding IsNewRecipe, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Nueva Receta|Editar Receta'}"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
@@ -100,7 +101,6 @@
                     Style="{StaticResource PrimaryButtonStyle}"
                     Margin="0,20,0,10"/>
 
-            <!-- ¡CORRECCIÓN CLAVE AQUÍ! IsEnabled debe ser IsNotBusy directamente (o InverseBoolConverter sobre IsBusy) -->
             <Button Text="Cancelar"
                     Command="{Binding CancelCommand}"
                     IsEnabled="{Binding IsNotBusy}" 

@@ -5,7 +5,8 @@
              xmlns:converters="clr-namespace:proyectoFin.Converters"
              x:Class="proyectoFin.MVVM.View.RegisterPage"
              Title="RegisterPage"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />

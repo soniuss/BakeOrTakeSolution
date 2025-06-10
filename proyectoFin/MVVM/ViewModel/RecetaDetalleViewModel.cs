@@ -1,14 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Domain.Model.ApiResponses; // Para RecetaResponse, PedidoOfertaResponse
-using Domain.Model.ApiRequests; // Para OfertaRequest, PedidoRequest
+using Domain.Model.ApiResponses;
+using Domain.Model.ApiRequests; 
 using proyectoFin.Services;
-using Refit;
-using System.Threading.Tasks;
-using System;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Storage;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using proyectoFin.MVVM.View;
 
@@ -66,7 +60,7 @@ namespace proyectoFin.MVVM.ViewModel
         public IAsyncRelayCommand EditRecipeCommand { get; }
         public IAsyncRelayCommand LoadOffersCommand { get; }
         public IAsyncRelayCommand<PedidoOfertaResponse> DeleteOfferCommand { get; }
-        public IAsyncRelayCommand ToggleFavoriteCommand { get; } // ¡NUEVO! Comando para favorito
+        public IAsyncRelayCommand ToggleFavoriteCommand { get; }
 
         public RecetaDetalleViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
@@ -81,7 +75,7 @@ namespace proyectoFin.MVVM.ViewModel
             EditRecipeCommand = new AsyncRelayCommand(EditRecipe);
             LoadOffersCommand = new AsyncRelayCommand(LoadOffers);
             DeleteOfferCommand = new AsyncRelayCommand<PedidoOfertaResponse>(DeleteOffer);
-            ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavorite); // ¡NUEVO! Inicializar comando
+            ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavorite); 
         }
 
         private async Task LoadReceta()
@@ -311,7 +305,7 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // ¡NUEVO! Método para eliminar una oferta
+        //Método para eliminar una oferta
         private async Task DeleteOffer(PedidoOfertaResponse offerToDelete)
         {
             if (offerToDelete == null || IsBusy) return;
@@ -369,7 +363,7 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // ¡NUEVO! Método para añadir/eliminar de favoritos
+        //Método para añadir/eliminar de favoritos
         private async Task ToggleFavorite()
         {
             if (IsBusy || Receta == null || !IsClientUser) return; // Solo clientes pueden marcar favoritos

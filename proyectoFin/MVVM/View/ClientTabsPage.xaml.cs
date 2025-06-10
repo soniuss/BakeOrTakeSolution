@@ -16,7 +16,6 @@ namespace proyectoFin.MVVM.View
             _serviceProvider = serviceProvider; // Almacena el serviceProvider
 
             // Añadir las páginas como hijos de la TabbedPage
-            // ¡Asegúrate de que tus ViewModels y Pages están registrados como Transient en MauiProgram.cs!
 
             // Pestaña 1: Explorar Recetas
             Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<RecipesPage>())
@@ -32,7 +31,7 @@ namespace proyectoFin.MVVM.View
                 IconImageSource = "recetas.png"
             });
 
-            // Pestaña 3: Mis Pedidos (MyOrdersPage) - ¡NUEVA PESTAÑA PARA CLIENTE!
+            // Pestaña 3: Mis Pedidos (MyOrdersPage)
             Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<MyOrdersPage>())
             {
                 Title = "Mis Pedidos",

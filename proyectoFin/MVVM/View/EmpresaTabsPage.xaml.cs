@@ -14,7 +14,7 @@
                 _serviceProvider = serviceProvider;
 
                 // Pestaña 1: Explorar Recetas (para empresas)
-                Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<RecipesPage>()) // ¡NUEVO!
+                Children.Add(new NavigationPage(_serviceProvider.GetRequiredService<RecipesPage>()) 
                 {
                     Title = "Explorar",
                     IconImageSource = "hoja.png" // Reutilizar el icono de explorar

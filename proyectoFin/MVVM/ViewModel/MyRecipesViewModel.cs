@@ -1,15 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
 using proyectoFin.Services;
 using Domain.Model.ApiResponses;
-using Microsoft.Maui.Storage;
-using System;
-using Refit;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using proyectoFin.MVVM.View;
 
 namespace proyectoFin.MVVM.ViewModel

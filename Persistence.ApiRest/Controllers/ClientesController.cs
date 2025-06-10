@@ -41,23 +41,20 @@ namespace Persistence.ApiRest.Controllers
             var nuevoCliente = new Cliente
             {
                 email = request.Email,
-                // NOTA: En una aplicacion real, la contraseña DEBE ser hasheada y no guardada en texto plano.
-                // Esto es solo para propositos de prueba inicial.
-                password_hash = request.Password, // Deberia ser un hash
+                password_hash = request.Password,
                 nombre = request.Nombre,
                 ubicacion = request.Ubicacion,
-                fecha_registro = DateTime.UtcNow // O DateTime.Now segun tu preferencia
+                fecha_registro = DateTime.UtcNow 
             };
 
             _context.Clientes.Add(nuevoCliente);
             await _context.SaveChangesAsync();
 
-            // Devolver una respuesta exitosa, por ejemplo, el cliente creado
-            // Podrias devolver un DTO de respuesta mas simple si no quieres exponer todo el modelo
-            return Ok(nuevoCliente); // O CreatedAtAction para RESTful completo
+            
+            return Ok(nuevoCliente); 
         }
 
-        // Ejemplo de endpoint GET para verificar (solo para desarrollo/prueba)
+        // Ejemplo de endpoint GET para verificar
         // GET /api/Clientes
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Cliente>>> GetClientes()
@@ -89,10 +86,6 @@ namespace Persistence.ApiRest.Controllers
             {
                 return NotFound();
             }
-
-            // Opcional: Si Cliente tuviera propiedades de navegación cíclicas,
-            // necesitaríamos un ClienteResponse DTO aquí para evitar errores de serialización.
-            // Por ahora, asumimos que Cliente se puede serializar directamente.
             return Ok(cliente);
         }
         // PUT /api/Clientes/{id}
@@ -126,12 +119,7 @@ namespace Persistence.ApiRest.Controllers
             // Actualizar solo los campos permitidos desde el cliente
             existingCliente.nombre = updateData.nombre;
             existingCliente.ubicacion = updateData.ubicacion;
-            // El email y password_hash NO se actualizan aquí directamente
-            // El email debería ser un endpoint de cambio de email
-            // El password_hash debería ser un endpoint de cambio de contraseña
-            // existingCliente.email = updateData.email; // No actualizar aquí
-            // existingCliente.password_hash = updateData.password_hash; // ¡NUNCA actualizar aquí!
-
+           
             try
             {
                 await _context.SaveChangesAsync();

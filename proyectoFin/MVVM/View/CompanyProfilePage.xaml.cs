@@ -1,5 +1,4 @@
 using proyectoFin.MVVM.ViewModel;
-using CommunityToolkit.Mvvm.Input; // Para ExecuteAsync
 
 namespace proyectoFin.MVVM.View
 {

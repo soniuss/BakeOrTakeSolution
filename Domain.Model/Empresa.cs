@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domain.Model
+﻿namespace Domain.Model
 {
     public class Empresa 
     {
@@ -16,7 +10,6 @@ namespace Domain.Model
         public string descripcion { get; set; }
         public string ubicacion { get; set; }
 
-        // Propiedad de navegación
         public ICollection<PedidoOferta> OfertasYPedidos { get; set; } // Una Empresa crea/ofrece muchos Pedido_Ofertas
 
         public Empresa()

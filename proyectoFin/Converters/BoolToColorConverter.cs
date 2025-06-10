@@ -1,6 +1,4 @@
-﻿// BoolToColorConverter.cs (DESPUÉS)
-using System.Globalization;
-using Microsoft.Maui.Controls;
+﻿using System.Globalization;
 
 namespace proyectoFin.Converters
 {

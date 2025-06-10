@@ -1,14 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls; // Para NavigationPage y Application.Current.MainPage
-using proyectoFin.Services; // Para IBakeOrTakeApi
-// using Domain.Model; // ¡ELIMINAR ESTA LÍNEA! Ya no se utiliza la entidad de dominio 'Receta' directamente aquí.
-using System; // Para Exception, IServiceProvider
-using proyectoFin.MVVM.View; // Para RecipeFormPage
-using Microsoft.Maui.Storage; // ¡CORRECTO! Para SecureStorage
-using Domain.Model.ApiResponses; // Para RecetaResponse
+using proyectoFin.Services;
+using proyectoFin.MVVM.View; 
+using Domain.Model.ApiResponses; 
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -18,7 +13,7 @@ namespace proyectoFin.MVVM.ViewModel
         private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
-        private ObservableCollection<RecetaResponse> recipes; // ¡CORRECTO! Ahora es RecetaResponse
+        private ObservableCollection<RecetaResponse> recipes; 
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -52,8 +47,7 @@ namespace proyectoFin.MVVM.ViewModel
 
         private async Task AddRecipe()
         {
-            // Lógica para navegación a RecipeFormPage en modo creación (ID 0)
-            // (Esta sección ya está bien si quieres mantener la lógica de FlyoutPage o TabbedPage)
+            
             if (Application.Current.MainPage is FlyoutPage flyoutPage && flyoutPage.Detail is NavigationPage navigationPage)
             {
                 var recipeFormPage = _serviceProvider.GetService<RecipeFormPage>();
@@ -72,7 +66,7 @@ namespace proyectoFin.MVVM.ViewModel
                     await Application.Current.MainPage.DisplayAlert("Error de navegación", "No se pudo cargar la página para añadir recetas.", "OK");
                 }
             }
-            // Lógica para navegación desde una TabbedPage (si es la actual estructura)
+            // Lógica para navegación desde una TabbedPage 
             else if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
             {
                 var recipeFormPage = _serviceProvider.GetService<RecipeFormPage>();
@@ -97,7 +91,7 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // ¡CORRECCIÓN CLAVE AQUÍ!: El parámetro debe ser RecetaResponse para coincidir con el comando.
+        
         private async Task EditRecipe(RecetaResponse recipeToEdit)
         {
             if (recipeToEdit == null) return;

@@ -4,7 +4,8 @@
              xmlns:viewmodels="clr-namespace:proyectoFin.MVVM.ViewModel"
              x:Class="proyectoFin.MVVM.View.WelcomePage"
              Title="WelcomePage"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
     <Grid RowDefinitions="*,Auto,Auto,Auto,*"
           ColumnDefinitions="*"
           Padding="20"

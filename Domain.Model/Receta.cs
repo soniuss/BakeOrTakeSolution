@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation; // ¡Asegúrate de que esta línea está!
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation; 
 
 namespace Domain.Model
 {
@@ -17,15 +12,15 @@ namespace Domain.Model
         public string imagenUrl { get; set; }
         public DateTime fecha_registro { get; set; }
 
-        // Enlace al Cliente creador (lado 'muchos' en la relación 1:N Cliente crea Receta)
+        // Enlace al Cliente creador (lado 'muchos' en la relación Cliente crea Receta)
         public int id_cliente_creador { get; set; } // Clave Foránea
 
-        [ValidateNever] // ¡Este atributo es clave!
-        public Cliente ClienteCreador { get; set; } // Propiedad de navegación al Cliente
+        [ValidateNever] 
+        public Cliente ClienteCreador { get; set; } 
 
-        // Relaciones con otras entidades (ahora Pedido_Oferta y Favorito)
+        // Relaciones con otras entidades 
         public ICollection<PedidoOferta> PedidosYOfertas { get; set; } // Una Receta es base de muchos Pedido_Ofertas
-        public ICollection<Favorito> Favoritos { get; set; } // Una Receta está en muchos registros de Favorito (M:N con Cliente)
+        public ICollection<Favorito> Favoritos { get; set; } // Una Receta está en muchos registros de Favorito
 
 
         public Receta()

@@ -1,6 +1,4 @@
 using proyectoFin.MVVM.ViewModel;
-using Microsoft.Extensions.DependencyInjection; // Para GetRequiredService
-using System.Collections.Generic; // Para IDictionary
 
 namespace proyectoFin.MVVM.View
 {

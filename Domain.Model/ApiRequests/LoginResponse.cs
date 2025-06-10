@@ -11,6 +11,5 @@ namespace Domain.Model.ApiRequests
         public string Token { get; set; } // Token JWT para futuras peticiones autenticadas
         public string UserType { get; set; } // "Cliente" o "Empresa"
         public int UserId { get; set; } // ID del usuario autenticado
-        // Puedes añadir mas propiedades segun lo que tu API devuelva (ej. Nombre de usuario)
     }
 }

@@ -8,7 +8,8 @@
             SelectedTabColor="#5C4033"       
             UnselectedTabColor="#7A5E48"      
             BarBackgroundColor="#FDF1EB"      
-            BarTextColor="#5C4033">
+            BarTextColor="#5C4033"
+            NavigationPage.HasNavigationBar="False">
  
 
 </TabbedPage>

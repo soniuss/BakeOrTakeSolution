@@ -1,13 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
-using Domain.Model; // Para la entidad Empresa
-using proyectoFin.Services; // Para IBakeOrTakeApi
-using Microsoft.Maui.Storage; // Para SecureStorage
-using System;
-using Refit;
-using proyectoFin.MVVM.View; // Para ApiException
+using Domain.Model; 
+using proyectoFin.Services; 
+using proyectoFin.MVVM.View; 
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -107,7 +102,7 @@ namespace proyectoFin.MVVM.ViewModel
                     return;
                 }
 
-                // ¡CORRECCIÓN CLAVE AQUÍ! Llamada al método existente en IBakeOrTakeApi
+               
                 var response = await _apiService.GetEmpresaByIdAsync(idEmpresaActual);
 
                 if (response.IsSuccessStatusCode && response.Content != null)
@@ -174,7 +169,7 @@ namespace proyectoFin.MVVM.ViewModel
                     ubicacion = Ubicacion,
                 };
 
-                // ¡CORRECCIÓN CLAVE AQUÍ! Llamada al método existente en IBakeOrTakeApi
+                
                 var response = await _apiService.UpdateEmpresaAsync(idEmpresaActual, updateRequest);
 
                 if (response.IsSuccessStatusCode)

@@ -7,7 +7,8 @@
              x:DataType="viewmodel:FavoritesViewModel"
              x:Class="proyectoFin.MVVM.View.FavoritesPage"
              Title="Mis Favoritos"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
 
     <ContentPage.Resources>
         <converters:StringIsNullOrEmptyConverter x:Key="StringIsNullOrEmptyConverter" />
@@ -54,8 +55,6 @@
                                 </Button>
                             </Grid>
                             <Label Text="{Binding Descripcion}" FontSize="Small" TextColor="#7A5E48" />
-                            <!-- ¡ELIMINAMOS LA INFORMACIÓN DEL CREADOR! -->
-                            <!-- <Label Text="{Binding ClienteCreadorNombre, StringFormat='Creador: {0}'}" FontSize="Small" TextColor="#7A5E48" /> -->
                         </VerticalStackLayout>
                     </Frame>
                 </DataTemplate>

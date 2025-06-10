@@ -1,15 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Domain.Model; // Necesario para la entidad Receta que se ENVÍA a la API
-using Domain.Model.ApiResponses; // Necesario para RecetaResponse que se RECIBE de la API
+using Domain.Model.ApiResponses; 
 using proyectoFin.Services;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Storage;
 using Refit;
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Extensions.DependencyInjection; // Necesario para IServiceProvider
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -216,27 +209,27 @@ namespace proyectoFin.MVVM.ViewModel
 
         private async Task PerformCancel()
         {
-            Console.WriteLine("DEBUG: PerformCancel() llamado."); // ¡NUEVO!
+            Console.WriteLine("DEBUG: PerformCancel() llamado."); 
             if (IsBusy)
             {
-                Console.WriteLine("DEBUG: PerformCancel() - ViewModel ocupado, no se puede cancelar."); // ¡NUEVO!
+                Console.WriteLine("DEBUG: PerformCancel() - ViewModel ocupado, no se puede cancelar.");
                 return;
             }
 
             // Lógica para volver a la página anterior sin guardar
             if (Application.Current.MainPage is NavigationPage mainNavPage && mainNavPage.CurrentPage is TabbedPage tabbedPage && tabbedPage.CurrentPage is NavigationPage currentTabPageNav)
             {
-                Console.WriteLine("DEBUG: Cancelando y volviendo desde TabbedPage context."); // ¡NUEVO!
+                Console.WriteLine("DEBUG: Cancelando y volviendo desde TabbedPage context."); 
                 await currentTabPageNav.PopAsync(); // Vuelve a la página anterior
             }
             else if (Application.Current.MainPage is NavigationPage directNavPage)
             {
-                Console.WriteLine("DEBUG: Cancelando y volviendo desde NavigationPage directa."); // ¡NUEVO!
+                Console.WriteLine("DEBUG: Cancelando y volviendo desde NavigationPage directa.");
                 await directNavPage.PopAsync();
             }
             else
             {
-                Console.WriteLine("ADVERTENCIA: Contexto de navegación inesperado para cancelar. No se pudo volver."); // ¡NUEVO!
+                Console.WriteLine("ADVERTENCIA: Contexto de navegación inesperado para cancelar. No se pudo volver.");
             }
         }
     }

@@ -17,7 +17,6 @@ namespace proyectoFin.MVVM.View
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            // CORRECCIÓN: Castear a IAsyncRelayCommand antes de llamar ExecuteAsync
             if (_viewModel.LoadRecipesCommand is IAsyncRelayCommand asyncCommand && asyncCommand.CanExecute(null))
             {
                 await asyncCommand.ExecuteAsync(null);

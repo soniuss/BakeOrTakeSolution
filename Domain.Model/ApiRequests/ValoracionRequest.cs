@@ -1,5 +1,4 @@
-﻿// En Domain.Model/ApiRequests/ValoracionRequest.cs
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Model.ApiRequests
 {

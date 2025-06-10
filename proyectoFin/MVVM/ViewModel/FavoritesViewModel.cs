@@ -1,14 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
 using proyectoFin.Services;
-using Domain.Model.ApiResponses; // Para RecetaResponse
-using Domain.Model.ApiRequests; // Para FavoritoToggleRequest
-using Microsoft.Maui.Storage; // Para SecureStorage
-using System;
-using Refit; // Para ApiException
+using Domain.Model.ApiResponses; 
+using Domain.Model.ApiRequests;
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -130,11 +125,11 @@ namespace proyectoFin.MVVM.ViewModel
             if (selectedReceta != null)
             {
                 Console.WriteLine($"Receta favorita seleccionada: {selectedReceta.Nombre}");
-                // Puedes navegar a RecetaDetallePage si lo deseas
+               
             }
         }
 
-        // ¡CORRECCIÓN CLAVE AQUÍ! Lógica para eliminar de favoritos
+        
         private async Task RemoveFavorite(RecetaResponse recetaToRemove)
         {
             if (recetaToRemove == null || IsBusy) return;
@@ -148,14 +143,13 @@ namespace proyectoFin.MVVM.ViewModel
             try
             {
                 var request = new FavoritoToggleRequest { IdReceta = recetaToRemove.IdReceta };
-                // La API ToggleFavoritoAsync debería manejar tanto añadir como eliminar.
-                // Si la receta ya es favorita, este endpoint la eliminará.
+                
                 var response = await _apiService.ToggleFavoritoAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Receta eliminada de favoritos.", "OK");
-                    FavoriteRecipes.Remove(recetaToRemove); // Eliminar localmente de la ObservableCollection
+                    FavoriteRecipes.Remove(recetaToRemove); 
                     ShowNoFavoritesMessage = FavoriteRecipes.Count == 0; // Actualizar mensaje "no hay favoritos"
                 }
                 else

@@ -1,16 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Domain.Model; // Para entidades Cliente y Empresa (si las usas en la respuesta)
-using Domain.Model.ApiRequests; // Para LoginRequest, LoginResponse, ClienteRegistrationRequest, EmpresaRegistrationRequest
-using Persistence.ApiRest; // Para ApplicationDbContext
-using Microsoft.EntityFrameworkCore; // Para FirstOrDefaultAsync, AnyAsync, SaveChangesAsync
-using System.Threading.Tasks;
-using System.IdentityModel.Tokens.Jwt; // Para JWT
-using System.Security.Claims; // Para Claims
-using Microsoft.IdentityModel.Tokens; // Para SecurityTokenDescriptor
-using System.Text; // Para Encoding
-using BCrypt.Net;
-using Microsoft.Extensions.Configuration; // Para IConfiguration
-using System; // ¡Necesario para Exception y Console.WriteLine!
+using Domain.Model; 
+using Domain.Model.ApiRequests; 
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt; 
+using System.Security.Claims; 
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Persistence.ApiRest.Controllers
 {
@@ -41,12 +36,12 @@ namespace Persistence.ApiRest.Controllers
 
                 // Buscar cliente por email (SOLO POR EMAIL, AUN NO POR CONTRASEÑA)
                 var cliente = await _context.Clientes
-                                            .FirstOrDefaultAsync(c => c.email == request.Email); // ¡CAMBIO AQUÍ! Eliminar && c.password_hash == request.Password
+                                            .FirstOrDefaultAsync(c => c.email == request.Email); 
 
                 if (cliente != null)
                 {
                     // VERIFICAR CONTRASEÑA HASHEADA
-                    if (BCrypt.Net.BCrypt.Verify(request.Password, cliente.password_hash)) // ¡CAMBIO AQUÍ!
+                    if (BCrypt.Net.BCrypt.Verify(request.Password, cliente.password_hash)) 
                     {
                         var token = GenerateJwtToken(cliente.id_cliente, "Cliente");
                         return Ok(new LoginResponse { Token = token, UserType = "Cliente", UserId = cliente.id_cliente });
@@ -55,12 +50,12 @@ namespace Persistence.ApiRest.Controllers
 
                 // Buscar empresa por email (SOLO POR EMAIL, AUN NO POR CONTRASEÑA)
                 var empresa = await _context.Empresas
-                                            .FirstOrDefaultAsync(e => e.email == request.Email); // ¡CAMBIO AQUÍ! Eliminar && e.password_hash == request.Password
+                                            .FirstOrDefaultAsync(e => e.email == request.Email); 
 
                 if (empresa != null)
                 {
                     // VERIFICAR CONTRASEÑA HASHEADA
-                    if (BCrypt.Net.BCrypt.Verify(request.Password, empresa.password_hash)) // ¡CAMBIO AQUÍ!
+                    if (BCrypt.Net.BCrypt.Verify(request.Password, empresa.password_hash)) 
                     {
                         var token = GenerateJwtToken(empresa.id_empresa, "Empresa");
                         return Ok(new LoginResponse { Token = token, UserType = "Empresa", UserId = empresa.id_empresa });
@@ -92,7 +87,6 @@ namespace Persistence.ApiRest.Controllers
         [HttpPost("register/cliente")]
         public async Task<IActionResult> RegisterCliente([FromBody] ClienteRegistrationRequest request)
         {
-            // --- INICIO DEL TRY-CATCH ---
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) ||
@@ -116,14 +110,14 @@ namespace Persistence.ApiRest.Controllers
                 var newClient = new Cliente
                 {
                     email = request.Email,
-                    password_hash = BCrypt.Net.BCrypt.HashPassword(request.Password), // ¡CAMBIO AQUÍ!
+                    password_hash = BCrypt.Net.BCrypt.HashPassword(request.Password), 
                     nombre = request.Nombre,
                     ubicacion = request.Ubicacion,
-                    fecha_registro = DateTime.UtcNow // Asegúrate de que esta línea esté, si quieres que se guarde la fecha
+                    fecha_registro = DateTime.UtcNow 
                 };
 
                 _context.Clientes.Add(newClient);
-                await _context.SaveChangesAsync(); // <-- Si hay un error aquí, ahora será capturado
+                await _context.SaveChangesAsync(); 
 
                 return Ok(new { Message = "Registro de cliente exitoso", UserId = newClient.id_cliente });
             }
@@ -132,7 +126,7 @@ namespace Persistence.ApiRest.Controllers
                 // --- ¡¡TEMPORAL PARA DEPURACIÓN!! ---
                 Console.WriteLine($"------------- ERROR EN API REST (CLIENTE) -------------");
                 Console.WriteLine($"Mensaje: {ex.Message}");
-                Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}"); // Útil si hay una excepción anidada
+                Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}"); 
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 Console.WriteLine($"-----------------------------------------------------");
 
@@ -145,14 +139,12 @@ namespace Persistence.ApiRest.Controllers
                 });
                 // --- ¡¡FIN TEMPORAL!! ---
             }
-            // --- FIN DEL TRY-CATCH ---
         }
 
         // Endpoint para registrar una empresa
         [HttpPost("register/empresa")]
         public async Task<IActionResult> RegisterEmpresa([FromBody] EmpresaRegistrationRequest request)
         {
-            // --- INICIO DEL TRY-CATCH ---
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) ||
@@ -177,15 +169,15 @@ namespace Persistence.ApiRest.Controllers
                 var newEmpresa = new Empresa
                 {
                     email = request.Email,
-                    password_hash = BCrypt.Net.BCrypt.HashPassword(request.Password), // ¡CAMBIO AQUÍ!
+                    password_hash = BCrypt.Net.BCrypt.HashPassword(request.Password), 
                     nombre_negocio = request.NombreNegocio,
                     descripcion = request.Descripcion,
                     ubicacion = request.Ubicacion,
-                    fecha_registro = DateTime.UtcNow // Asegúrate de que esta línea esté
+                    fecha_registro = DateTime.UtcNow 
                 };
 
                 _context.Empresas.Add(newEmpresa);
-                await _context.SaveChangesAsync(); // <-- Si hay un error aquí, ahora será capturado
+                await _context.SaveChangesAsync(); 
 
                 return Ok(new { Message = "Registro de empresa exitoso", UserId = newEmpresa.id_empresa });
             }
@@ -207,14 +199,11 @@ namespace Persistence.ApiRest.Controllers
                 });
                 // --- ¡¡FIN TEMPORAL!! ---
             }
-            // --- FIN DEL TRY-CATCH ---
         }
 
         // Metodo para generar un token JWT
         private string GenerateJwtToken(int userId, string userType)
         {
-            // Aunque este método no parece ser el que falla en el registro,
-            // es buena práctica envolverlo en un try-catch si tiene lógica compleja.
             try
             {
                 // Obtener la clave secreta de la configuracion (ej. appsettings.json o variables de entorno)

@@ -97,7 +97,7 @@ namespace Persistence.ApiRest
                 // --- Configuración de la Valoración (Embebida) ---
                 // Como los campos de Valoracion (puntuacion, comentario, fechaValoracion) son propiedades
                 // directamente en PedidoOferta y son nullable (DateTime? int? string?), EF Core los mapeará
-                // automáticamente a columnas nullable en la tabla PedidosOfertas. No necesitas configuración extra aquí.
+                // automáticamente a columnas nullable en la tabla PedidosOfertas.
 
 
                 

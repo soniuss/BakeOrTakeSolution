@@ -74,7 +74,6 @@ namespace proyectoFin.MVVM.ViewModel
                     if (response.Error != null && !string.IsNullOrEmpty(response.Error.Content))
                     {
                         Console.WriteLine($"Detalles del error API: {response.Error.Content}");
-                        // Puedes intentar deserializar response.Error.Content para un mensaje mas especifico de la API
                     }
                 }
             }

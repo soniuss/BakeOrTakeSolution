@@ -1,5 +1,4 @@
-﻿// En Domain.Model/ApiRequests/FavoritoToggleRequest.cs (crea este archivo)
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Model.ApiRequests
 {

@@ -1,8 +1,7 @@
-﻿using Domain.Model; // Necesario para Cliente y Empresa (en retornos de Auth y Perfil) y Receta (en cuerpos de POST/PUT)
-using Domain.Model.ApiRequests; // Para DTOs de solicitud como ClienteRegistrationRequest, OfertaRequest, PedidoRequest, ValoracionRequest
-using Domain.Model.ApiResponses; // ¡IMPORTANTE! Para DTOs de respuesta como RecetaResponse, PedidoOfertaResponse, LoginResponse
-using Microsoft.AspNetCore.Mvc;
-using Refit; // Para atributos HTTP y ApiResponse
+﻿using Domain.Model;
+using Domain.Model.ApiRequests;
+using Domain.Model.ApiResponses; 
+using Refit; 
 
 namespace proyectoFin.Services
 {
@@ -49,11 +48,10 @@ namespace proyectoFin.Services
         Task<ApiResponse<object>> UpdateClienteAsync(int id, [Body] Cliente updateData);
 
         // --- Métodos para Empresa (Perfil) ---
-        // Este ya debería estar, pero lo reconfirmo.
         [Get("/api/Empresas/{id}")]
         Task<ApiResponse<Empresa>> GetEmpresaByIdAsync(int id);
 
-        // Este ya debería estar, pero lo reconfirmo.
+        
         [Put("/api/Empresas/{id}")]
         Task<ApiResponse<Empresa>> UpdateEmpresaAsync(int id, [Body] Empresa updateData);
 
@@ -67,11 +65,11 @@ namespace proyectoFin.Services
         [Post("/api/PedidosOfertas/order")]
         Task<ApiResponse<PedidoOfertaResponse>> PlaceOrderAsync([Body] PedidoRequest request);
 
-        // Este ya debería estar, pero lo reconfirmo.
+        
         [Get("/api/PedidosOfertas/ByClient/{id_cliente}")]
         Task<ApiResponse<List<PedidoOfertaResponse>>> GetClientOrdersAsync(int id_cliente);
 
-        // Este ya debería estar, pero lo reconfirmo.
+        
         [Get("/api/PedidosOfertas/ByCompany/{id_empresa}")]
         Task<ApiResponse<List<PedidoOfertaResponse>>> GetCompanyOffersAsync(int id_empresa);
 

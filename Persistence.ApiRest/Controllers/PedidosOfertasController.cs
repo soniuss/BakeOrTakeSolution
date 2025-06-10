@@ -1,15 +1,10 @@
-﻿using Domain.Model; // Para las entidades de dominio (PedidoOferta, Empresa, Receta, Cliente)
-using Domain.Model.ApiRequests; // Para OfertaRequest, PedidoRequest
-using Domain.Model.ApiResponses; // Para PedidoOfertaResponse
+﻿using Domain.Model; 
+using Domain.Model.ApiRequests; 
+using Domain.Model.ApiResponses; 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // Para Include, Where, ToListAsync, FindAsync
-using System.Linq; // Para Select, Any
-using System.Security.Claims; // Para acceder a los claims del token (UserId, Role)
-using Microsoft.AspNetCore.Authorization; // Para el atributo [Authorize]
-using System.Threading.Tasks; // Para Task
-using System.Collections.Generic; // Para IEnumerable, List
-using System; // Para DateTime, Console.WriteLine
-
+using Microsoft.EntityFrameworkCore; 
+using System.Security.Claims; 
+using Microsoft.AspNetCore.Authorization; 
 namespace Persistence.ApiRest.Controllers
 {
     [ApiController]
@@ -94,8 +89,8 @@ namespace Persistence.ApiRest.Controllers
             // Obtener todas las PedidoOferta creadas por esta empresa
             var ofertasYPedidos = await _context.PedidosOfertas
                                                     .Where(po => po.id_empresa == id_empresa)
-                                                    .Include(po => po.Receta) // Incluir la receta asociada
-                                                    .Include(po => po.ClienteRealiza) // Incluir el cliente que hizo el pedido (si es un pedido)
+                                                    .Include(po => po.Receta) 
+                                                    .Include(po => po.ClienteRealiza)
                                                     .ToListAsync();
 
             // Mapear la entidad de dominio a PedidoOfertaResponse DTO
@@ -106,7 +101,7 @@ namespace Persistence.ApiRest.Controllers
                 Disponibilidad = po.disponibilidad,
                 DescripcionOferta = po.descripcionOferta,
                 IdEmpresa = po.id_empresa,
-                EmpresaNombreNegocio = po.Empresa != null ? po.Empresa.nombre_negocio : "Desconocido", // Empresa ya está incluida por el filtro
+                EmpresaNombreNegocio = po.Empresa != null ? po.Empresa.nombre_negocio : "Desconocido", 
                 EmpresaUbicacion = po.Empresa != null ? po.Empresa.ubicacion : "Desconocido",
                 IdReceta = po.id_receta,
                 RecetaNombre = po.Receta != null ? po.Receta.nombre : "Desconocido",
@@ -124,7 +119,7 @@ namespace Persistence.ApiRest.Controllers
             return Ok(pedidoOfertaResponses);
         }
 
-        // NUEVO: Endpoint para obtener todas las ofertas disponibles para una Receta específica
+        //Endpoint para obtener todas las ofertas disponibles para una Receta específica
         // GET /api/PedidosOfertas/ByReceta/{id_receta}
         [HttpGet("ByReceta/{id_receta}")]
         // Este endpoint es público para que cualquier usuario (cliente o empresa) pueda ver las ofertas de una receta.
@@ -133,8 +128,8 @@ namespace Persistence.ApiRest.Controllers
             // Obtener solo las PedidoOferta que son "Oferta" (id_cliente es null) y están disponibles
             var ofertas = await _context.PedidosOfertas
                                         .Where(po => po.id_receta == id_receta && po.id_cliente == null && po.disponibilidad)
-                                        .Include(po => po.Empresa) // Incluir la empresa que hace la oferta
-                                        .Include(po => po.Receta)  // Incluir la receta asociada
+                                        .Include(po => po.Empresa) 
+                                        .Include(po => po.Receta)  
                                         .ToListAsync();
 
             // Mapear la entidad de dominio a PedidoOfertaResponse DTO
@@ -157,7 +152,7 @@ namespace Persistence.ApiRest.Controllers
             return Ok(ofertaResponses);
         }
 
-        // NUEVO: Endpoint para que una Empresa cree una Oferta para una Receta
+        //Endpoint para que una Empresa cree una Oferta para una Receta
         // POST /api/PedidosOfertas/offer/{id_receta}
         [HttpPost("offer/{id_receta}")]
         [Authorize(Roles = "Empresa")] // Solo empresas pueden crear ofertas
@@ -221,7 +216,7 @@ namespace Persistence.ApiRest.Controllers
             return CreatedAtAction(nameof(GetOffersByReceta), new { id_receta = offerResponse.IdReceta }, offerResponse);
         }
 
-        // NUEVO: Endpoint para que un Cliente haga un Pedido de una Oferta existente
+        //Endpoint para que un Cliente haga un Pedido de una Oferta existente
         // POST /api/PedidosOfertas/order
         [HttpPost("order")]
         [Authorize(Roles = "Cliente")] // Solo clientes pueden hacer pedidos
@@ -237,7 +232,7 @@ namespace Persistence.ApiRest.Controllers
             var offer = await _context.PedidosOfertas
                                       .Include(po => po.Empresa)
                                       .Include(po => po.Receta)
-                                      .Include(po => po.ClienteRealiza) // Para el mapeo de respuesta
+                                      .Include(po => po.ClienteRealiza) 
                                       .FirstOrDefaultAsync(po => po.id_pedido_oferta == request.IdPedidoOferta && po.id_cliente == null && po.disponibilidad);
 
             if (offer == null)
@@ -302,7 +297,7 @@ namespace Persistence.ApiRest.Controllers
             return Ok(orderResponse); // Devuelve el pedido actualizado
         }
 
-        // NUEVO: Endpoint para que una Empresa marque un Pedido como Completado
+        //Endpoint para que una Empresa marque un Pedido como Completado
         // PUT /api/PedidosOfertas/complete/{id_pedido_oferta}
         [HttpPut("complete/{id_pedido_oferta}")]
         [Authorize(Roles = "Empresa")] // Solo la empresa puede marcar como completado
@@ -360,7 +355,7 @@ namespace Persistence.ApiRest.Controllers
             return NoContent(); // 204 No Content
         }
 
-        // NUEVO: Endpoint para que un Cliente valore un Pedido Completado
+        //Endpoint para que un Cliente valore un Pedido Completado
         // PUT /api/PedidosOfertas/rate/{id_pedido_oferta}
         [HttpPut("rate/{id_pedido_oferta}")]
         [Authorize(Roles = "Cliente")] // Solo el cliente puede valorar
@@ -424,7 +419,7 @@ namespace Persistence.ApiRest.Controllers
             return NoContent(); // 204 No Content
         }
 
-        // NUEVO: Endpoint para eliminar una oferta
+        //Endpoint para eliminar una oferta
         // DELETE /api/PedidosOfertas/{id_pedido_oferta}
         [HttpDelete("{id_pedido_oferta}")]
         [Authorize(Roles = "Empresa")] // Solo la empresa que la creó puede eliminarla

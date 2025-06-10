@@ -6,7 +6,8 @@
              x:Class="proyectoFin.MVVM.View.RecipesPage"
              x:DataType="viewmodel:RecipesViewModel"
              Title="Explorar"
-             BackgroundColor="#FFE7EA">
+             BackgroundColor="#FFE7EA"
+             NavigationPage.HasNavigationBar="False">
 
     <ContentPage.Resources>
         <ResourceDictionary>

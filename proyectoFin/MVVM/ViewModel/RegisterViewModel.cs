@@ -1,35 +1,30 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls; // Necesario para Application.Current.MainPage
-using proyectoFin.Services; // Asegúrate de que tu interfaz de API esté aquí
-using Domain.Model.ApiRequests; // Asegúrate de que tus DTOs estén aquí
-using proyectoFin.MVVM.View; // Necesario para ClientMainPage
-using System; // Necesario para Exception, Console.WriteLine, IServiceProvider
-using System.Net.Http; // Necesario para HttpResponseMessage si lo usas en el futuro
+using proyectoFin.Services; 
+using Domain.Model.ApiRequests; 
+using proyectoFin.MVVM.View; 
 
 
 namespace proyectoFin.MVVM.ViewModel
 {
-    // Asegúrate de que hereda de ObservableObject
     public partial class RegisterViewModel : ObservableObject
     {
         private readonly IBakeOrTakeApi _apiService;
-        private readonly IServiceProvider _serviceProvider; // NUEVO: Para acceder al contenedor de DI
+        private readonly IServiceProvider _serviceProvider; 
 
-        // Constructor: Ahora inyecta IServiceProvider
+        // Constructor: inyecta IServiceProvider
         public RegisterViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
             _serviceProvider = serviceProvider; // Asigna el IServiceProvider inyectado
 
-            // Inicializa tus comandos
+            // Inicializa comandos
             PerformRegisterCommand = new AsyncRelayCommand(PerformRegister);
             SelectClientTypeCommand = new RelayCommand(() => IsClientSelected = true);
             SelectCompanyTypeCommand = new RelayCommand(() => IsClientSelected = false);
         }
 
-        // --- Propiedades enlazables (recuerda que deben ser PascalCase) ---
+        // --- Propiedades enlazables ---
 
         [ObservableProperty]
         private string email;
@@ -53,7 +48,7 @@ namespace proyectoFin.MVVM.ViewModel
         private bool isClientSelected = true; // Por defecto, es cliente
 
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotBusy))] // CRUCIAL para IsNotBusy
+        [NotifyPropertyChangedFor(nameof(IsNotBusy))] 
         private bool isBusy; // Indica si hay una operación en curso (ej. llamada a la API)
 
         // Propiedad calculada para IsNotBusy
@@ -103,7 +98,7 @@ namespace proyectoFin.MVVM.ViewModel
             {
                 if (IsClientSelected)
                 {
-                    // Crear el Request DTO para Cliente
+                    
                     var request = new ClienteRegistrationRequest
                     {
                         Email = Email,
@@ -162,7 +157,7 @@ namespace proyectoFin.MVVM.ViewModel
                     {
                         Email = Email,
                         Password = Password,
-                        NombreNegocio = Nombre, // IMPORTANTE: Mapea ViewModel.Nombre a DTO.NombreNegocio
+                        NombreNegocio = Nombre, //Mapea ViewModel.Nombre a DTO.NombreNegocio
                         Descripcion = Descripcion,
                         Ubicacion = Ubicacion
                     };
@@ -172,10 +167,10 @@ namespace proyectoFin.MVVM.ViewModel
                     if (empresaApiResponse.IsSuccessStatusCode)
                     {
                         await Application.Current.MainPage.DisplayAlert("Éxito", "Registro de empresa completado.", "OK");
-                        // Navegación a ClientMainPage (o EmpresaMainPage si tuvieras una específica)
+                        
                         if (Application.Current.MainPage is NavigationPage navigationPage)
                         {
-                            var empresaMainPage = _serviceProvider.GetService<EmpresaTabsPage>(); // O EmpresaMainPage
+                            var empresaMainPage = _serviceProvider.GetService<EmpresaTabsPage>(); 
                             if (empresaMainPage != null)
                             {
                                 await navigationPage.PushAsync(empresaMainPage);
@@ -189,7 +184,7 @@ namespace proyectoFin.MVVM.ViewModel
                         else
                         {
                             // Fallback si MainPage no es una NavigationPage
-                            var empresaMainPage = _serviceProvider.GetService<EmpresaTabsPage>(); // O EmpresaMainPage
+                            var empresaMainPage = _serviceProvider.GetService<EmpresaTabsPage>(); 
                             if (empresaMainPage != null)
                             {
                                 Application.Current.MainPage = empresaMainPage;

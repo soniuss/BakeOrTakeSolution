@@ -1,17 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
 using proyectoFin.Services;
-using Domain.Model; // Para PedidoOferta (si se usa en la colección)
-using Domain.Model.ApiResponses; // Para PedidoOfertaResponse
-using Domain.Model.ApiRequests; // Para ValoracionRequest
-using Microsoft.Maui.Storage;
-using System;
+using Domain.Model.ApiResponses;
+using Domain.Model.ApiRequests; 
 using Refit;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq; // Para Where
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -118,7 +111,7 @@ namespace proyectoFin.MVVM.ViewModel
                 else if (UserType == "Empresa")
                 {
                     response = await _apiService.GetCompanyOffersAsync(userIdActual);
-                    // ¡CORRECCIÓN CLAVE AQUÍ! Filtrar y asignar a la nueva lista
+                   
                     filteredContent = response.Content?.Where(po => po.IdClienteRealiza.HasValue).ToList();
                 }
                 else

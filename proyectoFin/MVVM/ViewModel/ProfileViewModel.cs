@@ -1,13 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
-using Domain.Model; // Para la entidad Cliente
-using proyectoFin.Services; // Para IBakeOrTakeApi
-using Microsoft.Maui.Storage; // Para SecureStorage
-using System; // Para Exception, IServiceProvider
-using Refit; // Para ApiException
-using proyectoFin.MVVM.View; // Para LoginPage (en LogoutCommand)
+using Domain.Model; 
+using proyectoFin.Services; 
+using proyectoFin.MVVM.View; 
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -25,7 +20,7 @@ namespace proyectoFin.MVVM.ViewModel
         [ObservableProperty]
         private string userUbicacion;
 
-        // ¡NUEVO! Propiedad para controlar el modo de edición
+        //Propiedad para controlar el modo de edición
         [ObservableProperty]
         private bool _isEditing;
 
@@ -44,7 +39,7 @@ namespace proyectoFin.MVVM.ViewModel
         public IAsyncRelayCommand LoadUserProfileCommand { get; }
         public IRelayCommand LogoutCommand { get; }
 
-        // ¡NUEVO! Comando para alternar el modo de edición
+        //Comando para alternar el modo de edición
         public IRelayCommand ToggleEditModeCommand { get; }
 
         public ProfileViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
@@ -56,13 +51,13 @@ namespace proyectoFin.MVVM.ViewModel
             LoadUserProfileCommand = new AsyncRelayCommand(LoadUserProfile);
             LogoutCommand = new RelayCommand(async () => await PerformLogout());
 
-            // ¡NUEVO! Inicializar el comando de alternar edición
+            //Inicializar el comando de alternar edición
             ToggleEditModeCommand = new RelayCommand(ToggleEditMode);
 
             _ = LoadUserProfile(); // Cargar perfil al inicializar
         }
 
-        // ¡NUEVO! Método para alternar el modo de edición
+        //Método para alternar el modo de edición
         private void ToggleEditMode()
         {
             IsEditing = !IsEditing;
@@ -147,7 +142,7 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // ¡NUEVO! Método para guardar los cambios del perfil de cliente
+        //Método para guardar los cambios del perfil de cliente
         private async Task SaveChanges()
         {
             if (IsBusy) return;
@@ -173,19 +168,15 @@ namespace proyectoFin.MVVM.ViewModel
                 }
 
                 // Crear un objeto Cliente para enviar a la API con los campos actualizados
-                // La API debería tener un endpoint PUT /api/Clientes/{id}
                 var updateRequest = new Cliente
                 {
                     id_cliente = idClienteActual,
                     email = UserEmail, // El email no suele cambiarse, pero si la API lo acepta...
                     nombre = UserName,
                     ubicacion = UserUbicacion
-                    // No incluir password_hash ni fecha_registro aquí
                 };
 
-                // Llama al endpoint de la API para actualizar el cliente
-                // Necesitarás un método UpdateClienteAsync en IBakeOrTakeApi.cs
-                // Y un endpoint PUT /api/Clientes/{id} en ClientesController.cs
+              
                 var response = await _apiService.UpdateClienteAsync(idClienteActual, updateRequest);
 
                 if (response.IsSuccessStatusCode)
@@ -217,7 +208,7 @@ namespace proyectoFin.MVVM.ViewModel
             }
         }
 
-        // El LogoutCommand ya existe y funciona.
+        // El LogoutCommand 
         private async Task PerformLogout()
         {
             SecureStorage.Remove("jwt_token");

@@ -1,15 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
 using proyectoFin.Services;
 using Refit;
-using System;
-using Microsoft.Maui.Storage;
-using Microsoft.Extensions.DependencyInjection;
-using proyectoFin.MVVM.View; // Para RecetaDetallePage
-using Domain.Model.ApiResponses; // Para RecetaResponse
+using proyectoFin.MVVM.View; 
+using Domain.Model.ApiResponses; 
 
 namespace proyectoFin.MVVM.ViewModel
 {
@@ -33,21 +28,10 @@ namespace proyectoFin.MVVM.ViewModel
         private readonly IBakeOrTakeApi _apiService;
         private readonly IServiceProvider _serviceProvider;
 
-        // ¡CORRECCIÓN CLAVE AQUÍ! SelectedItem se declara con [ObservableProperty]
+        //SelectedItem se declara con [ObservableProperty]
         // y el setter automático se encargará de OnSelectedItemChanged.
         [ObservableProperty]
         private RecetaItemViewModel _selectedItem;
-
-        // ¡ELIMINAR LA IMPLEMENTACIÓN MANUAL DE OnSelectedItemChanged!
-        // El generador de código ya crea un método parcial vacío o una implementación básica.
-        // partial void OnSelectedItemChanged(RecetaItemViewModel value)
-        // {
-        //    foreach (var item in Recipes)
-        //        item.IsSelected = false;
-        //    if (value != null)
-        //        value.IsSelected = true;
-        // }
-
 
         public RecipesViewModel(IBakeOrTakeApi apiService, IServiceProvider serviceProvider)
         {

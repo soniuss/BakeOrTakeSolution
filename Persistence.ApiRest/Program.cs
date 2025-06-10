@@ -3,9 +3,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Persistence.ApiRest;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using System;
-using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +21,6 @@ else
 {
     // Si DATABASE_URL no existe o esta vacia, construir la cadena de conexion
     // usando las variables individuales de MySQL inyectadas por Railway
-    // NOTA: Se mantienen los nombres de variables que te funcionan (sin guion bajo en algunos)
     var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST");
     var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT");
     var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER");
@@ -89,12 +85,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// *** INICIO DE LA CORRECCION PARA SWAGGER ***
-// Mueve estas líneas FUERA del bloque if (app.Environment.IsDevelopment())
-// para que Swagger UI esté disponible en todos los entornos (incluido Railway).
 app.UseSwagger();
 app.UseSwaggerUI();
-// *** FIN DE LA CORRECCION PARA SWAGGER ***
+
 
 
 app.UseHttpsRedirection();
@@ -103,7 +96,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// **Aplicar migraciones antes de empezar el pipeline**
+// **Aplicar migraciones antes de empezar 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -115,7 +108,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Console.WriteLine($"ERROR: Fallo al aplicar migraciones: {ex.Message}");
-        // Opcional: relanzar la excepcion si quieres que el despliegue falle
+        
         // throw;
     }
 }

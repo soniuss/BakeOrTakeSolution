@@ -1,6 +1,4 @@
-﻿// En Domain.Model/ApiRequests/PedidoRequest.cs
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Model.ApiRequests
 {
@@ -10,6 +8,6 @@ namespace Domain.Model.ApiRequests
         public int IdPedidoOferta { get; set; } // El ID de la oferta a la que se hace el pedido
 
         // El id_cliente se obtendrá del token JWT.
-        // La fechaPedido y el estado se asignarán en el controlador.
+        // La fechaPedido y el estado se asignan en el controlador.
     }
 }

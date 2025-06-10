@@ -1,14 +1,10 @@
 ﻿using Domain.Model;
-using Domain.Model.ApiRequests; // Para FavoritoToggleRequest
-using Domain.Model.ApiResponses; // Para RecetaResponse
+using Domain.Model.ApiRequests; 
+using Domain.Model.ApiResponses; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System;
 
 namespace Persistence.ApiRest.Controllers
 {
@@ -84,7 +80,7 @@ namespace Persistence.ApiRest.Controllers
             return Ok(isFavorite);
         }
 
-        // ¡CORRECCIÓN CLAVE AQUÍ! Endpoint para añadir o eliminar una receta de favoritos (toggle)
+        //Endpoint para añadir o eliminar una receta de favoritos (toggle)
         // POST /api/Favoritos/Toggle
         [HttpPost("Toggle")]
         [Authorize(Roles = "Cliente")]
